@@ -5,7 +5,7 @@
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
             <div class="container sm_new_request_form" id="sm_new_request_form">
                 <h1 style="text-align:center;" class="pb-5">New Order Request</h1>
-                <form method="post" action="/submit/order/request">
+                <form method="post" action="/api/create_rfq">
                     <div class="row">
                         <div class="col-3">
                             <label for="partner_id" class="form-label me-3">
@@ -62,11 +62,12 @@
                                 <th scope="col"></th>
                             </tr>
                         </thead>
-                        <tbody id="productTableBody">
+                        <tbody id="productTableBody" name="productTableBody">
                             <!-- <t t-foreach="products" t-as="product"> -->
                             <tr>
                                 <td>
-                                    <select id="productSelect" name="product">
+                                    <select id="productSelect" name="product" class="product">
+                                        <option value="" selected="selected">Select a product</option>
                                         <t t-foreach="products" t-as="product">
                                             <option t-att-value="product.id">
                                                 <t t-out="product.name"/>
@@ -78,10 +79,12 @@
                                     <input type="number" name="product-qty[]" class="product-qty" placeholder="Enter a product quantity"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="product-package" class="product-package" placeholder="Your package" readonly="readonly"/>
+                                    <select name="product-package" class="product-package">
+                                        <option value="" selected="selected">Select a package</option>
+                                    </select>
                                 </td>
                                 <td>
-                                    <input type="text" name="product-unit" class="product-unit"  readonly="readonly"/>
+                                    <input type="text" name="product-unit" class="product-unit"  readonly="readonly" placeholder="Select a product first"/>
                                     <!-- <t t-out = "products.unit"/> -->
                                 </td>
                                 <td>
@@ -94,8 +97,8 @@
                         </tbody>
                     </table>
                     <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
-                        <button type="submit" class="btn btn-primary">Submit Request</button>
-                       
+                        <button type="submit" id="submit" class="btn btn-primary">Submit Request</button>
+                       <span id="error-message" style="color: red; display: none;">Please select a product.</span>
                     </div>
                 </form>
             </div>

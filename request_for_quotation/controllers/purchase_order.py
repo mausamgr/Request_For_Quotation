@@ -21,12 +21,14 @@ class ProductAPIController(http.Controller):
                         # 'unit': product.uom_id.name,
                     } for variant in product.product_variant_ids
                 ]
+                packages = [package.name for package in product.packaging_ids]
                 result.append({
                     'product_id': product.id,
                     'product_name': product.name,
                     'price': product.list_price,
                     'category': product.categ_id.name,
                     'unit': product.uom_id.sudo().name,
+                    'package': packages,
                     'variants': variants,
                 })
 
