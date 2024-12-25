@@ -8,18 +8,12 @@ class RFQSessionController(http.Controller):
 
     @http.route('/api/save_rfq_data', type='json', auth='public', methods=['POST'], csrf=False)
     def save_rfq_data(self, **kwargs):
-        """
-        Save the form data in the session.
-        """
         parsed_kwargs = json.loads(kwargs.get('body'))
         request.session['rfq_data'] = parsed_kwargs
         return {"success": True, "message": "RFQ data saved successfully."}
 
     @http.route('/api/get_rfq_data', type='json', auth='user')
     def get_rfq_data(self):
-        """
-        Retrieve the saved form data from the session.
-        """
         rfq_data = request.session.get('rfq_data', {})
         print("Session data: ", rfq_data)
         return {"success": True, "data": rfq_data}

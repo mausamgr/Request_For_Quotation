@@ -8,5 +8,6 @@ class PurchaseRequestPortal(http.Controller):
     def new_request_form(self):
         products = request.env['product.template'].search([])
         return request.render('request_for_quotation.view_new_request_form',{
-            "products": products    
+            "products": products,
+            'page_name':"new_rfq"
         })
