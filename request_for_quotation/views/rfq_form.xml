@@ -5,6 +5,7 @@
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
             <div class="container sm_new_request_form" id="sm_new_request_form">
                 <h1 style="text-align:center;" class="pb-5">New Order Request</h1>
+                <button type="button" id="retrieve" class="btn btn-secondary">Retrieve</button>
                 <form method="post" action="/api/create_rfq">
                     <div class="row">
                         <div class="col-3">
@@ -97,7 +98,8 @@
                         </tbody>
                     </table>
                     <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
-                        <button type="submit" id="submit" class="btn btn-primary">Submit Request</button>
+                        <button  id="save" type="button" class="btn btn-primary">Save</button>
+                        <button id="submit" type="submit" class="btn btn-primary">Submit Request</button>
                        <span id="error-message" style="color: red; display: none;">Please select a product.</span>
                     </div>
                 </form>

@@ -52,7 +52,7 @@
                     <xpath expr="//t[@t-call='portal.portal_searchbar']" position="before">
     </xpath>
              <xpath expr="//t[@t-call='portal.portal_searchbar']" position="before">
-            <div class="o_portal_actions mb-3">
+            <div class="o_portal_actions mb-3 d-flex justify-content-end">
                 <a href="/purchase/new_request" class="btn btn-primary" id="new_purchase_request">New Request</a>
                 
             </div>
@@ -61,3 +61,4 @@
 
     </template>
 </odoo>
+ 
