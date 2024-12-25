@@ -12,6 +12,8 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     "change #productSelect": "_onProductChange",
     "input #productSelect": "_onProductSearch",
     "click #submit": "_onClickSubmit",
+    "click #save": "_onClickSave",
+    "click #retrieve": "_retrieveDataFromSession"
   },
   data: [],
   init() {
@@ -36,6 +38,159 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
       console.log("Error rendering content", error);
     }
   },
+  
+  async _onClickSave(ev){
+    ev.preventDefault()
+    console.log("Save button clicked")
+    const formData = {
+      partner_id: this.el.querySelector("#partner_id").value,
+      request_date: this.el.querySelector("#request_date").value,
+      data_order: this.el.querySelector("#data_order").value,
+      date_planned: this.el.querySelector("#date_planned").value,
+      products: [],
+    }
+    let hasError = false // flag to track validation errors
+    const tableRows = this.el.querySelectorAll("#productTableBody tr");
+    tableRows.forEach((row) => {
+      const productID = row.querySelector(".product").value;
+      const productQty = row.querySelector(".product-qty").value;
+      const productPackage = row.querySelector(".product-package").value;
+      const productUnit = row.querySelector(".product-unit").value;
+
+      if (productID === ""){
+        hasError = true
+        return
+      }
+      else{
+        hasError = false
+      }
+      const selectedProduct = this.data.find(
+        (product) => product.product_id == Number(productID)
+      )
+      formData.products.push({
+        product_name: selectedProduct.product_name,
+        product_id: productID,
+        product_qty: productQty,
+        product_pkg: productPackage,
+        product_uom: productUnit,
+      });
+    });
+    if (hasError){
+      alert("Please select a product")
+      return
+    }
+    console.log("Form data save in session: ",formData)
+    try {
+      const response = await rpc("/api/save_rfq_data", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log(response)
+      if (response.success) {
+          alert("Data saved successfully!");
+      } else {
+          alert("Failed to save data. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting RFQ", error);
+      alert("An error occurred while submitting the request.", error);
+    }
+  },
+
+  async _retrieveDataFromSession() {
+    try {
+        const response = await rpc("/api/get_rfq_data", { method: "GET" });
+
+        if (response.success && response.data) {
+            const data = response.data;
+            console.log("Data retrieved:\t", data);
+
+            // Populate the form fields
+            this.el.querySelector("#partner_id").value = data.partner_id || "";
+            this.el.querySelector("#request_date").value = data.request_date || "";
+            this.el.querySelector("#data_order").value = data.data_order || "";
+            this.el.querySelector("#date_planned").value = data.date_planned || "";
+
+            const tableBody = this.el.querySelector("#productTableBody");
+            tableBody.innerHTML = ""; // Clear existing rows
+
+            const _this = this; // Reference to 'this' for use inside the event listener
+
+            (data.products || []).forEach((product) => {
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td>
+                        <input type="hidden" name="product_id" class="product" 
+                            value="${product.product_id}" readonly />
+                        <input type="text" name="product_name" class="product-name" 
+                            value="${product.product_name || ''}" readonly />
+                    </td>
+                    <td>
+                        <input type="number" name="product_qty" class="product-qty" 
+                            value="${product.product_qty}" readonly />
+                    </td>
+                    <td>
+                        <input type="text" name="product_package" class="product-package" 
+                            value="${product.product_pkg}" readonly />
+                    </td>
+                    <td>
+                        <input type="text" name="product_unit" class="product-unit" 
+                            value="${product.product_uom}" readonly />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-remove">Remove</button>
+                    </td>
+                `;
+                tableBody.appendChild(newRow);
+
+                // Add event listener for the Remove button
+                newRow.querySelector(".btn-remove").addEventListener("click", async function () {
+                    try {
+                        // Remove the row from the frontend
+                        newRow.remove();
+                        // Make an RPC call to remove the data from the session
+                        const removeResponse = await rpc("/api/remove_rfq_data", {
+                            method: "POST",
+                            product_id: product.product_id, 
+                            product_qty: product.product_qty,
+                        });
+
+                        if (removeResponse.success) {
+                            console.log(`Product ID ${product.product_id} removed from session.`);
+                            if (tableBody.children.length === 0) {
+                              _this.el.querySelector("#data_order").value = "";
+                              _this.el.querySelector("#date_planned").value = "";
+    
+                              // Show empty message
+                              const emptyMessage = document.createElement("tr");
+                              emptyMessage.innerHTML = `
+                                  <td colspan="5" class="text-center">
+                                      No products in the RFQ. Please add products to proceed.
+                                  </td>
+                              `;
+                              tableBody.appendChild(emptyMessage);
+                            }
+                        } else {
+                            alert("Failed to remove the data from the session.");
+                        }
+                    } catch (error) {
+                        console.error(`Error removing product ID ${product.product_id} from session`, error);
+                        alert("An error occurred while removing the data.");
+                    }
+                });
+            });
+
+            alert("Data retrieved successfully!");
+        } else {
+            alert("No saved data found.");
+        }
+    } catch (error) {
+        console.error("Error retrieving data from session", error);
+        alert("An error occurred while retrieving the data.");
+    }
+},
+
 
   _onProductChange(ev) {
     const select = ev.currentTarget; // The select element
