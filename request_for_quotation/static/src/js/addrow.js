@@ -13,7 +13,8 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     "input #productSelect": "_onProductSearch",
     "click #submit": "_onClickSubmit",
     "click #save": "_onClickSave",
-    "click #retrieve": "_retrieveDataFromSession"
+    "click #retrieve": "_retrieveDataFromSession",
+    "click #addProduct": "_onClickAddProduct"
   },
   data: [],
   init() {
@@ -39,130 +40,154 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     }
   },
   
-  async _onClickSave(ev){
-    ev.preventDefault()
-    console.log("Save button clicked")
+  async _onClickSave(ev) {
+    ev.preventDefault();
+    console.log("Save button clicked");
+
     const formData = {
-      partner_id: this.el.querySelector("#partner_id").value,
-      request_date: this.el.querySelector("#request_date").value,
-      data_order: this.el.querySelector("#data_order").value,
-      date_planned: this.el.querySelector("#date_planned").value,
-      products: [],
-    }
-    let hasError = false // flag to track validation errors
-    const tableRows = this.el.querySelectorAll("#productTableBody tr");
-    tableRows.forEach((row) => {
-      const productID = row.querySelector(".product").value;
-      const productQty = row.querySelector(".product-qty").value;
-      const productPackage = row.querySelector(".product-package").value;
-      const productUnit = row.querySelector(".product-unit").value;
+        partner_id: this.el.querySelector("#partner_id").value,
+        request_date: this.el.querySelector("#request_date").value,
+        data_order: this.el.querySelector("#data_order").value,
+        date_planned: this.el.querySelector("#date_planned").value,
+        products: [],
+    };
 
-      if (productID === ""){
-        hasError = true
-        return
-      }
-      else{
-        hasError = false
-      }
-      const selectedProduct = this.data.find(
-        (product) => product.product_id == Number(productID)
-      )
-      formData.products.push({
-        product_name: selectedProduct.product_name,
-        product_id: productID,
-        product_qty: productQty,
-        product_pkg: productPackage,
-        product_uom: productUnit,
-      });
-    });
-    if (hasError){
-      alert("Please select a product")
-      return
+    // Get table rows, excluding any empty rows without product fields
+    const tableRows = Array.from(this.el.querySelectorAll("#productTableBody tr"))
+        .filter((row) => row.querySelector(".product"));
+    console.log(tableRows)
+    // If there are no rows, save empty products array
+    if (tableRows.length === 0) {
+        console.log("No products in table. Saving empty data.");
+        // You can also push an empty object if needed
+        formData.products = [];
+    } else {
+        // Iterate over the rows if there are any
+        tableRows.forEach((row) => {
+            const productID = row.querySelector(".product").value || "";
+            const productQty = row.querySelector(".product-qty").value || "";
+            const productPackage = row.querySelector(".product-package").value || "";
+            const productUnit = row.querySelector(".product-unit").value || "";
+
+            // If productID is empty, exit
+            if (productID === "") {
+                return;
+            }
+
+            const selectedProduct = this.data.find(
+                (product) => product.product_id == Number(productID)
+            );
+
+            formData.products.push({
+                product_name: selectedProduct ? selectedProduct.product_name : "",
+                product_id: productID,
+                product_qty: productQty,
+                product_pkg: productPackage,
+                product_uom: productUnit,
+            });
+        });
     }
-    console.log("Form data save in session: ",formData)
+
     try {
-      const response = await rpc("/api/save_rfq_data", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
-      });
-      console.log(response)
-      if (response.success) {
-          alert("Data saved successfully!");
-      } else {
-          alert("Failed to save data. Please try again.");
-      }
+        const response = await rpc("/api/save_rfq_data", {
+            method: "POST",
+            body: JSON.stringify(formData),
+            headers: { "Content-Type": "application/json" },
+        });
+        console.log(response);
+        if (response.success) {
+            alert("Data saved successfully!");
+        } else {
+            alert("Failed to save data. Please try again.");
+        }
     } catch (error) {
-      console.error("Error submitting RFQ", error);
-      alert("An error occurred while submitting the request.", error);
+        console.error("Error submitting RFQ", error);
+        alert("An error occurred while submitting the request.", error);
     }
-  },
+},
 
-  async _retrieveDataFromSession() {
-    try {
-        const response = await rpc("/api/get_rfq_data", { method: "GET" });
+async _retrieveDataFromSession() {
+  try {
+      const response = await rpc("/api/get_rfq_data", { method: "GET" });
 
-        if (response.success && response.data) {
-            const data = response.data;
-            console.log("Data retrieved:\t", data);
+      if (response.success && response.data) {
+          const data = response.data;
+          console.log("Data retrieved:\t", data);
 
-            // Populate the form fields
-            this.el.querySelector("#partner_id").value = data.partner_id || "";
-            this.el.querySelector("#request_date").value = data.request_date || "";
-            this.el.querySelector("#data_order").value = data.data_order || "";
-            this.el.querySelector("#date_planned").value = data.date_planned || "";
+          // Populate the form fields
+          this.el.querySelector("#partner_id").value = data.partner_id || "";
+          this.el.querySelector("#request_date").value = data.request_date || "";
+          this.el.querySelector("#data_order").value = data.data_order || "";
+          this.el.querySelector("#date_planned").value = data.date_planned || "";
 
-            const tableBody = this.el.querySelector("#productTableBody");
-            tableBody.innerHTML = ""; // Clear existing rows
+          const tableBody = this.el.querySelector("#productTableBody");
+          tableBody.innerHTML = ""; // Clear existing rows
 
-            const _this = this; // Reference to 'this' for use inside the event listener
+          const products = (data.products || []).filter(
+              (product) =>
+                  product.product_id || product.product_qty || product.product_pkg || product.product_uom
+          );
+          if (products.length === 0) {
+              // Show a message when no valid products exist
+              const emptyMessage = document.createElement("tr");
+              emptyMessage.innerHTML = `
+                  <td colspan="5" class="text-center">
+                      No products found in the RFQ. Please add products to proceed.
+                      <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
+                  </td>
+              `;
+              tableBody.appendChild(emptyMessage);
+              return;
+          }
 
-            (data.products || []).forEach((product) => {
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>
-                        <input type="hidden" name="product_id" class="product" 
-                            value="${product.product_id}" readonly />
-                        <input type="text" name="product_name" class="product-name" 
-                            value="${product.product_name || ''}" readonly />
-                    </td>
-                    <td>
-                        <input type="number" name="product_qty" class="product-qty" 
-                            value="${product.product_qty}" readonly />
-                    </td>
-                    <td>
-                        <input type="text" name="product_package" class="product-package" 
-                            value="${product.product_pkg}" readonly />
-                    </td>
-                    <td>
-                        <input type="text" name="product_unit" class="product-unit" 
-                            value="${product.product_uom}" readonly />
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-remove">Remove</button>
-                    </td>
-                `;
-                tableBody.appendChild(newRow);
+          // Populate the valid product rows
+          products.forEach((product) => {
+              const newRow = document.createElement("tr");
+              newRow.innerHTML = `
+                  <td>
+                      <input type="hidden" name="product_id" class="product" 
+                          value="${product.product_id}" readonly />
+                      <input type="text" name="product_name" class="product-name" 
+                          value="${product.product_name || ''}" readonly />
+                  </td>
+                  <td>
+                      <input type="number" name="product_qty" class="product-qty" 
+                          value="${product.product_qty}" readonly />
+                  </td>
+                  <td>
+                      <input type="text" name="product_package" class="product-package" 
+                          value="${product.product_pkg}" readonly />
+                  </td>
+                  <td>
+                      <input type="text" name="product_unit" class="product-unit" 
+                          value="${product.product_uom}" readonly />
+                  </td>
+                  <td>
+                      <button type="button" id="addMore" class="btn btn-primary">Add More</button>
+                      <button type="button" class="btn btn-danger btn-remove">Remove</button>
+                  </td>
+              `;
+              tableBody.appendChild(newRow);
 
-                // Add event listener for the Remove button
-                newRow.querySelector(".btn-remove").addEventListener("click", async function () {
-                    try {
-                        // Remove the row from the frontend
-                        newRow.remove();
-                        // Make an RPC call to remove the data from the session
-                        const removeResponse = await rpc("/api/remove_rfq_data", {
-                            method: "POST",
-                            product_id: product.product_id, 
-                            product_qty: product.product_qty,
-                        });
+              // Add event listener for the Remove button
+              newRow.querySelector(".btn-remove").addEventListener("click", async () => {
+                  try {
+                      newRow.remove(); // Remove the row from the frontend
+                      const removeResponse = await rpc("/api/remove_rfq_data", {
+                          method: "POST",
+                          body: JSON.stringify({
+                              product_id: product.product_id,
+                              product_qty: product.product_qty,
+                          }),
+                          headers: { "Content-Type": "application/json" },
+                      });
 
-                        if (removeResponse.success) {
-                            console.log(`Product ID ${product.product_id} removed from session.`);
-                            if (tableBody.children.length === 0) {
-                              _this.el.querySelector("#data_order").value = "";
-                              _this.el.querySelector("#date_planned").value = "";
-    
-                              // Show empty message
+                      if (removeResponse.success) {
+                          console.log(`Product ID ${product.product_id} removed from session.`);
+                          if (tableBody.children.length === 0) {
+                              this.el.querySelector("#data_order").value = "";
+                              this.el.querySelector("#date_planned").value = "";
+
                               const emptyMessage = document.createElement("tr");
                               emptyMessage.innerHTML = `
                                   <td colspan="5" class="text-center">
@@ -170,25 +195,25 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                                   </td>
                               `;
                               tableBody.appendChild(emptyMessage);
-                            }
-                        } else {
-                            alert("Failed to remove the data from the session.");
-                        }
-                    } catch (error) {
-                        console.error(`Error removing product ID ${product.product_id} from session`, error);
-                        alert("An error occurred while removing the data.");
-                    }
-                });
-            });
+                          }
+                      } else {
+                          alert("Failed to remove the data from the session.");
+                      }
+                  } catch (error) {
+                      console.error(`Error removing product ID ${product.product_id} from session`, error);
+                      alert("An error occurred while removing the data.");
+                  }
+              });
+          });
 
-            alert("Data retrieved successfully!");
-        } else {
-            alert("No saved data found.");
-        }
-    } catch (error) {
-        console.error("Error retrieving data from session", error);
-        alert("An error occurred while retrieving the data.");
-    }
+          alert("Data retrieved successfully!");
+      } else {
+          alert("No saved data found.");
+      }
+  } catch (error) {
+      console.error("Error retrieving data from session", error);
+      alert("An error occurred while retrieving the data.");
+  }
 },
 
 
@@ -287,6 +312,53 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
       console.error("Error submitting RFQ", error);
       alert("An error occurred while submitting the request.", error);
     }
+  },
+
+  async _onClickAddProduct(ev){
+    ev.preventDefault();
+    const products = this.data;
+    const tableBody = this.el.querySelector("#productTableBody");
+    tableBody.innerHTML = ""; // Clear existing rows
+    // Create the product form HTML with a dynamic select dropdown
+    const productSelectOptions = products.map(product => {
+      return `<option value="${product.product_id}">${product.product_name}</option>`;
+  }).join('');
+    const productFormHTML = `
+                  <tr>
+                      <td style="vertical-align: middle;">
+                          <select id="productSelect" name="product" class="product" style="width: 120px; padding: 5px; font-size: 14px;">
+                              <option value="" selected="selected">Select a product</option>
+                              ${productSelectOptions}
+                          </select>
+                      </td>
+                      <td style="vertical-align: middle;">
+                          <input type="number" name="product-qty[]" class="product-qty" 
+                              placeholder="Enter a product quantity" 
+                              style="width: 80px; padding: 5px; font-size: 14px; text-align: center;"/>
+                      </td>
+                      <td style="vertical-align: middle;">
+                          <select name="product-package" class="product-package" 
+                              style="width: 120px; padding: 5px; font-size: 14px;">
+                              <option value="" selected="selected">Select a package</option>
+                          </select>
+                      </td>
+                      <td style="vertical-align: middle;">
+                          <input type="text" name="product-unit" class="product-unit" readonly="readonly" 
+                              placeholder="Select a product first" 
+                              style="width: 120px; padding: 5px; font-size: 14px; background-color: #f9f9f9; text-align: center;"/>
+                      </td>
+                      <td style="vertical-align: middle;">
+                          <div class="btn-addmore" style="text-align: center;">
+                              <button type="button" id="addMore" class="btn btn-primary" 
+                                  style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                  Add More
+                              </button>
+                          </div>
+                      </td>
+                  </tr>
+              `;
+     // Insert the product form row into the table
+     tableBody.insertAdjacentHTML("beforeend", productFormHTML);
   },
 
   _onClickAddMore(ev) {
