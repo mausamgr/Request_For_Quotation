@@ -40,6 +40,7 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     }
   },
   
+  // _onClickSave handler will save the user selected data in the session
   async _onClickSave(ev) {
     ev.preventDefault();
     console.log("Save button clicked");
@@ -106,13 +107,15 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     }
 },
 
+  // _retrieveDataFromSession handler retrieves the session data and 
+  // displays to user allowing them to modify their selection
 async _retrieveDataFromSession() {
   try {
       const response = await rpc("/api/get_rfq_data", { method: "GET" });
 
       if (response.success && response.data) {
           const data = response.data;
-          console.log("Data retrieved:\t", data);
+          console.log("Data retrieved:", data);
 
           // Populate the form fields
           this.el.querySelector("#partner_id").value = data.partner_id || "";
@@ -124,87 +127,31 @@ async _retrieveDataFromSession() {
           tableBody.innerHTML = ""; // Clear existing rows
 
           const products = (data.products || []).filter(
-              (product) =>
-                  product.product_id || product.product_qty || product.product_pkg || product.product_uom
+              product =>
+                  product.product_id && 
+                  product.product_uom 
           );
+
           if (products.length === 0) {
-              // Show a message when no valid products exist
-              const emptyMessage = document.createElement("tr");
-              emptyMessage.innerHTML = `
-                  <td colspan="5" class="text-center">
-                      No products found in the RFQ. Please add products to proceed.
-                      <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
-                  </td>
-              `;
-              tableBody.appendChild(emptyMessage);
+              // Display empty state
+              tableBody.innerHTML = `
+                  <tr>
+                      <td colspan="5" class="text-center">
+                          No products found in the RFQ. Please add products to proceed.
+                          <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
+                      </td>
+                  </tr>`;
               return;
           }
 
-          // Populate the valid product rows
-          products.forEach((product) => {
-              const newRow = document.createElement("tr");
-              newRow.innerHTML = `
-                  <td>
-                      <input type="hidden" name="product_id" class="product" 
-                          value="${product.product_id}" readonly />
-                      <input type="text" name="product_name" class="product-name" 
-                          value="${product.product_name || ''}" readonly />
-                  </td>
-                  <td>
-                      <input type="number" name="product_qty" class="product-qty" 
-                          value="${product.product_qty}" readonly />
-                  </td>
-                  <td>
-                      <input type="text" name="product_package" class="product-package" 
-                          value="${product.product_pkg}" readonly />
-                  </td>
-                  <td>
-                      <input type="text" name="product_unit" class="product-unit" 
-                          value="${product.product_uom}" readonly />
-                  </td>
-                  <td>
-                      <button type="button" id="addMore" class="btn btn-primary">Add More</button>
-                      <button type="button" class="btn btn-danger btn-remove">Remove</button>
-                  </td>
-              `;
-              tableBody.appendChild(newRow);
-
-              // Add event listener for the Remove button
-              newRow.querySelector(".btn-remove").addEventListener("click", async () => {
-                  try {
-                      newRow.remove(); // Remove the row from the frontend
-                      const removeResponse = await rpc("/api/remove_rfq_data", {
-                          method: "POST",
-                          body: JSON.stringify({
-                              product_id: product.product_id,
-                              product_qty: product.product_qty,
-                          }),
-                          headers: { "Content-Type": "application/json" },
-                      });
-
-                      if (removeResponse.success) {
-                          console.log(`Product ID ${product.product_id} removed from session.`);
-                          if (tableBody.children.length === 0) {
-                              this.el.querySelector("#data_order").value = "";
-                              this.el.querySelector("#date_planned").value = "";
-
-                              const emptyMessage = document.createElement("tr");
-                              emptyMessage.innerHTML = `
-                                  <td colspan="5" class="text-center">
-                                      No products in the RFQ. Please add products to proceed.
-                                  </td>
-                              `;
-                              tableBody.appendChild(emptyMessage);
-                          }
-                      } else {
-                          alert("Failed to remove the data from the session.");
-                      }
-                  } catch (error) {
-                      console.error(`Error removing product ID ${product.product_id} from session`, error);
-                      alert("An error occurred while removing the data.");
-                  }
-              });
+          // Render product rows
+          products.forEach(product => {
+              const productRowHTML = this._createProductRow(product);
+              tableBody.insertAdjacentHTML("beforeend", productRowHTML);
           });
+
+          // Add event listeners for dynamic rows
+          this._addEventListeners();
 
           alert("Data retrieved successfully!");
       } else {
@@ -216,7 +163,72 @@ async _retrieveDataFromSession() {
   }
 },
 
+// _createProductRow handler creates the new rows inside the table
+// allowing users to edit and remove their selections  
+_createProductRow(product={}) {
+  console.log("This data:\t",this.data)
+  const productOptions = this.data.map(p => 
+      `<option value="${p.product_id}" ${p.product_id === Number(product.product_id) ? 'selected' : ''}>
+          ${p.product_name}
+      </option>`
+  ).join("");
+  console.log("Product Options:\t",productOptions)
+  const packageOptions = (this.data.find(p => p.product_id === Number(product.product_id))?.package || []).map(pkg => 
+      `<option value="${pkg}" ${pkg === product.product_pkg ? 'selected' : ''}>
+          ${pkg}
+      </option>`
+  ).join("");
+  console.log("Product pkg options: \t", packageOptions)
+  return `
+      <tr>
+          <td>
+              <select id="productSelect" name="product" class="product" style="width: 120px;">
+                  <option value="">Select a product</option>
+                  ${productOptions}
+              </select>
+          </td>
+          <td>
+              <input ttype="number" name="product-qty[]" class="product-qty" value="${product.product_qty || ''}" 
+                     placeholder="Enter quantity" style="width: 80px; text-align: center;" />
+          </td>
+          <td>
+              <select name="product-package" class="product-package" style="width: 120px;">
+                  <option value="">Select a package</option>
+                  ${packageOptions}
+              </select>
+          </td>
+          <td>
+              <input type="text" name="product-unit" class="product-unit" readonly 
+                     value="${product.product_uom || 'Select a product first'}" 
+                     style="width: 120px; background-color: #f9f9f9; text-align: center;" />
+          </td>
+          <td>
+              <button type="button" id="addMore" class="btn btn-primary" 
+                                                    style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                                    Add More
+                                                </button>
+              <button type="button" class="btn btn-danger remove-row"  
+                                                    style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                                    Remove
+                                                    </button>
+          </td>
+      </tr>`;
+},
 
+// _addEventListeners handler handles the remove button logic
+_addEventListeners() {
+  const tableBody = this.el.querySelector("#productTableBody");
+
+  tableBody.querySelectorAll(".remove-row").forEach(button => {
+      button.addEventListener("click", event => {
+          const row = event.target.closest("tr");
+          row.remove();
+      });
+  });
+},
+
+// _onProductChange handler selects the data (i.e. product-package and product-unit) 
+// based on the selected product
   _onProductChange(ev) {
     const select = ev.currentTarget; // The select element
     // console.log(select,'product selected ....')
@@ -255,6 +267,7 @@ async _retrieveDataFromSession() {
 
   _onProductSearch() {},
 
+  // _onClickSubmit handler creates the purchase order and rfq
   async _onClickSubmit(ev) {
     ev.preventDefault();
 
@@ -314,57 +327,21 @@ async _retrieveDataFromSession() {
     }
   },
 
+  // _onClickAddProduct handler creates the row in the table allowing 
+  // user to select the product
   async _onClickAddProduct(ev){
     ev.preventDefault();
-    const products = this.data;
     const tableBody = this.el.querySelector("#productTableBody");
-    tableBody.innerHTML = ""; // Clear existing rows
-    // Create the product form HTML with a dynamic select dropdown
-    const productSelectOptions = products.map(product => {
-      return `<option value="${product.product_id}">${product.product_name}</option>`;
-  }).join('');
-    const productFormHTML = `
-                  <tr>
-                      <td style="vertical-align: middle;">
-                          <select id="productSelect" name="product" class="product" style="width: 120px; padding: 5px; font-size: 14px;">
-                              <option value="" selected="selected">Select a product</option>
-                              ${productSelectOptions}
-                          </select>
-                      </td>
-                      <td style="vertical-align: middle;">
-                          <input type="number" name="product-qty[]" class="product-qty" 
-                              placeholder="Enter a product quantity" 
-                              style="width: 80px; padding: 5px; font-size: 14px; text-align: center;"/>
-                      </td>
-                      <td style="vertical-align: middle;">
-                          <select name="product-package" class="product-package" 
-                              style="width: 120px; padding: 5px; font-size: 14px;">
-                              <option value="" selected="selected">Select a package</option>
-                          </select>
-                      </td>
-                      <td style="vertical-align: middle;">
-                          <input type="text" name="product-unit" class="product-unit" readonly="readonly" 
-                              placeholder="Select a product first" 
-                              style="width: 120px; padding: 5px; font-size: 14px; background-color: #f9f9f9; text-align: center;"/>
-                      </td>
-                      <td style="vertical-align: middle;">
-                          <div class="btn-addmore" style="text-align: center;">
-                              <button type="button" id="addMore" class="btn btn-primary" 
-                                  style="font-size: 16px; padding: 8px 16px; width: 150px;">
-                                  Add More
-                              </button>
-                          </div>
-                      </td>
-                  </tr>
-              `;
-     // Insert the product form row into the table
-     tableBody.insertAdjacentHTML("beforeend", productFormHTML);
+    const productRow = this._createProductRow()
+    tableBody.innerHTML = productRow;
   },
 
+  // _onClickAddMore handler adds the new rows into the table keeping the 
+  // product that is selected by user
   _onClickAddMore(ev) {
     ev.preventDefault();
 
-    const productSelect = this.el.querySelector("#productSelect");
+    const productSelect = this.el.querySelector(".product");
     const tableBody = this.el.querySelector("#productTableBody");
     const productQtyInput = this.el.querySelector(".product-qty");
     const productPackageSelect = this.el.querySelector(".product-package");
@@ -387,37 +364,18 @@ async _retrieveDataFromSession() {
     );
     console.log(selectedProduct)
     if (selectedProduct) {
-        // Append a new readonly row with the selected product details
+        const productRowData = {
+          product_id: selectedProductId,
+          product_pkg: selectedProductPackage,
+          product_qty: selectedProductQty,
+          product_uom: selectedProductUnit,
+        }
+        // Generate the row using `_createProductRow`
         const newRow = document.createElement("tr");
-        newRow.innerHTML = `
-            <td>
-                <input type="hidden" name="product_id" class="product" 
-                    value="${selectedProduct.product_id}" readonly />
-                <input type="text" name="product_name" class="product-name" 
-                    value="${selectedProduct.product_name}" readonly />
-            </td>
-            <td>
-                <input type="number" name="product_qty" class="product-qty" 
-                    value="${selectedProductQty}" readonly />
-            </td>
-            <td>
-                <input type="text" name="product_package" class="product-package" 
-                    value="${selectedProductPackage}" readonly />
-            </td>
-            <td>
-                <input type="text" name="product_unit" class="product-unit" 
-                    value="${selectedProductUnit}" readonly />
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-remove">Remove</button>
-            </td>
-        `;
-        tableBody.appendChild(newRow);
+        newRow.innerHTML = this._createProductRow(productRowData);
 
-        // Add event listener for the Remove button
-        newRow.querySelector(".btn-remove").addEventListener("click", function () {
-            newRow.remove();
-        });
+        // Append the new row to the table
+        tableBody.appendChild(newRow);
 
         // Reset the first row inputs for new product selection
         productSelect.value = ""; // Reset product dropdown
