@@ -18,6 +18,8 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     data: [],
     init() {
         this._super(...arguments);
+        this.notification = this.bindService("notification");
+
         // this.rpc = this.bindService("rpc");
         this.data = [];
     },
@@ -171,18 +173,20 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                                     tableBody.appendChild(emptyMessage);
                                 }
                             } else {
-                                alert("Failed to remove the data from the session.");
+                                this.notification.add(
+                                    "Failed to remove the data from the session!", { type: 'danger' }
+                                );
                             }
                         } catch (error) {
                             console.error(`Error removing product ID ${product.product_id} from session`, error);
-                            alert("An error occurred while removing the data.");
+                            this.notification.add("An error occurred while removing the data.", { type: 'warning' });
                         }
                     });
                 });
 
-                alert("Data retrieved successfully!");
+                this.notification.add("Data retrieved successfully!", { type: 'success' });
             } else {
-                alert("No saved data found.");
+                this.notification.add("No saved data found.", { type: 'danger' });
             }
         } catch (error) {
             console.error("Error retrieving data from session", error);
@@ -271,22 +275,22 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
         try {
             const response = await rpc("/api/create_rfq", {
                 method: "POST",
-                body: JSON.stringify(formData), // Make sure to stringify the formData
-                headers: { "Content-Type": "application/json" } // Set the correct content type
+                body: JSON.stringify(formData),
+                headers: { "Content-Type": "application/json" }
             });
             console.log(response)
             if (response.success) {
-                alert("Request for Quotation submitted successfully!");
-                location.reload(); // Optionally, refresh the page
+                this.notification.add(
+                    "Request for Quotation submitted successfully!", { type: 'success' }
+                );
             } else {
-                alert("Failed to submit the request. Please try again.");
+                this.notification.add("Failed to submit the request. Please try again!", { type: 'danger' });
             }
         } catch (error) {
             console.error("Error submitting RFQ", error);
-            alert("An error occurred while submitting the request.", error);
+            this.notification.add("An error occurred while submitting the request.", error, { type: 'warning' });
         }
     },
-
     _onClickAddMore(ev) {
         ev.preventDefault();
 

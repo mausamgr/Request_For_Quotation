@@ -16,7 +16,7 @@
     ],
         'assets': {
             'web.assets_frontend':[
-                # 'request_for_quotation/static/src/css/style.css',
+                'request_for_quotation/static/src/css/style.css',
                 # 'request_for_quotation/static/src/js/pop_up.js',
                 'request_for_quotation/static/src/js/addRow.js',
                 ],
