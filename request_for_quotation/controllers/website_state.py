@@ -26,3 +26,5 @@ class CustomerPortal(portal.CustomerPortal):
             'rfq',
             'rfqs'
         )
+        
+

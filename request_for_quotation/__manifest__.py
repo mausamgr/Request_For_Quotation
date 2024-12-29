@@ -12,6 +12,7 @@
     'data': [
         'views/order.xml',
         'views/rfq_form.xml',
+        'views/your_quotation.xml',
         # 'views/pop_up.xml',
     ],
         'assets': {

@@ -11,3 +11,12 @@ class PurchaseRequestPortal(http.Controller):
             "products": products,
             'page_name':"new_rfq"
         })
+class PurchaseController(http.Controller):
+
+    @http.route('/purchase/save_iteam', type='http', auth="public", website=True)
+    def save_iteam(self, **kwargs):
+        return http.request.render('request_for_quotation.portal_save_rfq', {
+    'title': 'Your Save RFQ',
+    'website_id': 1,
+    'page_name':"save_rfq"
+    })

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_my_home_menu_save_rfq" name="Portal layout : purchase menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'save_rfq'">
+                <a t-if="order" t-attf-href="/my/purchase?{{ keep_query() }}">Purchase Orders</a>
+                <t t-else="">
+                    <a t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'" 
+                    style="text-decoration: none; color: inherit;">
+                        Request For Quotation/Save Request
+                    </a>
+                </t>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_save_rfq" name="Save RFQ Template">
+    <t t-call="portal.portal_layout"></t>
+    <t t-set="breadcrumbs_searchbar"/>
+        <t t-set="title">Your Save RFQ</t>
+
+        <table class="table table-striped">
+            <thead>
+                <tr class="active">
+                    <th>
+                        <span class="d-none d-md-inline">Request for Quotation #</span>
+                        <span class="d-block d-md-none">Ref.</span>
+                    </th>
+                    <th class="text-end">Order Deadline</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+        </table>
+    </template>
+</odoo>

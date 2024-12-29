@@ -77,7 +77,7 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             });
         });
         if (hasError) {
-            alert("Please select a product")
+            this.notification.add("Please select a product", { type: 'warning' })
             return
         }
         console.log("Form data save in session: ", formData)
@@ -89,13 +89,15 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             });
             console.log(response)
             if (response.success) {
-                alert("Data saved successfully!");
+                this.notification.add("Data saved successfully!", {
+                    type: 'success'
+                });
             } else {
-                alert("Failed to save data. Please try again.");
+                this.notification.add("Failed to save data. Please try again.", { type: "danger" });
             }
         } catch (error) {
             console.error("Error submitting RFQ", error);
-            alert("An error occurred while submitting the request.", error);
+            this.notification.add("An error occurred while submitting the request.", { type: "danger" });
         }
     },
 
@@ -268,7 +270,7 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             });
         });
         if (hasError) {
-            alert("Please select a product")
+            this.notification.add("Please select a product", { type: 'warning' });
             return
         }
         console.log(formData)

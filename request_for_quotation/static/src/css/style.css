@@ -8,7 +8,6 @@
     border-radius: 5px;
     font-size: 16px;
     display: none;
-    /* Initially hidden */
     z-index: 9999;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
