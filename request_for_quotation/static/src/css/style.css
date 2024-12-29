@@ -1,7 +1,24 @@
-#productSelect{
-    /* width: 53%; */
-    height: 100%;
+.success-notification {
+    background-color: white !important;
+    border-left: 4px solid #28a745 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin: 8px;
 }
-.btn-addmore button{
-    width: 100%;
+
+.success-notification .o_notification_title {
+    color: #28a745;
+    font-size: 18px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.success-notification .o_notification_content {
+    color: #666;
+    font-size: 14px;
+}
+
+.o_notification_manager {
+    z-index: 1100;
 }

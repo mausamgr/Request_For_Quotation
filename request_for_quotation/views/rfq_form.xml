@@ -4,7 +4,12 @@
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <li t-if="page_name == 'new_rfq'">
                 <a t-if="order" t-attf-href="/my/purchase?{{ keep_query() }}">Purchase Orders</a>
-                <t t-else=""> Request For Quotation/New Request</t>
+                <t t-else="">
+                    <a t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'" 
+                    style="text-decoration: none; color: inherit;">
+                        Request For Quotation/New Request
+                    </a>
+                </t>
             </li>
         </xpath>
     </template>
@@ -124,8 +129,6 @@
                                     </tr>
                                 </tbody>
                             </table>
-
-
                             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
                                 <button id="save" type="button" class="btn btn-primary">Save</button>
                                 <button id="submit" type="submit" class="btn btn-primary">Submit Request</button>

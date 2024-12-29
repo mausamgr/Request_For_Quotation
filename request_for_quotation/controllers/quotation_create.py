@@ -8,10 +8,8 @@ from odoo.http import request
 class RFQController(http.Controller):
 
     def format_datetime(self, datetime_str:any):
-        # Convert to datetime object
         datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M")
 
-        # Format to the desired format
         formatted_datetime = datetime_obj.strftime("%Y-%m-%d %H:%M")
         return formatted_datetime
 
@@ -23,8 +21,6 @@ class RFQController(http.Controller):
             date_order = self.format_datetime(kwargs.get('data_order'))
             date_planned = self.format_datetime(kwargs.get('date_planned'))
             products = kwargs.get('products')
-
-
             if not date_order:
                 return {'error': 'Order date is required.'}
             if not date_planned:

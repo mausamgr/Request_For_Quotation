@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="request_for_quotation.AwesomeDashboard">
+        <Layout className="'o_dashboard h-100'" display="{controlPanel: {} }">
+            <t t-set-slot="control-panel-always-buttons">
+                <button t-on-click="showNotification" type="button" class="btn btn-secondary" title="Show Notification">Show</button>
+            </t>
+        </Layout>
+    </t>
+</templates>

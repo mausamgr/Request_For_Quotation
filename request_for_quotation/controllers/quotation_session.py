@@ -4,14 +4,26 @@ from datetime import datetime
 from odoo import http
 from odoo.http import request
 
+
 class RFQSessionController(http.Controller):
 
     @http.route('/api/save_rfq_data', type='json', auth='public', methods=['POST'], csrf=False)
     def save_rfq_data(self, **kwargs):
         parsed_kwargs = json.loads(kwargs.get('body'))
         request.session['rfq_data'] = parsed_kwargs
-        return {"success": True, "message": "RFQ data saved successfully."}
-
+        # return {"success": True, "message": "RFQ data saved successfully."}
+        
+        # return {
+        #     "type": "ir.actions.client",
+        #     "tag": "show_popup_message_with_animation",
+        #     "data": {
+        #         "pop_up": {
+        #             "type": "success",
+        #             "message": "RFQ data saved successfully.",
+        #             "duration": 3000
+        #         }
+        #     }
+        # }
     @http.route('/api/get_rfq_data', type='json', auth='user')
     def get_rfq_data(self):
         rfq_data = request.session.get('rfq_data', {})
