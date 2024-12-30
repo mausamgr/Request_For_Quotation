@@ -19,7 +19,10 @@
             'web.assets_frontend':[
                 'request_for_quotation/static/src/css/style.css',
                 # 'request_for_quotation/static/src/js/pop_up.js',
-                'request_for_quotation/static/src/js/addRow.js',
+                'request_for_quotation/static/src/js/addrow.js',
+                # 'request_for_quotation/static/src/js/add_more_widget.js',
+                # 'request_for_quotation/static/src/js/row_management.js',
+                # 'request_for_quotation/static/src/js/data_handlers.js',
                 ],
         },
 

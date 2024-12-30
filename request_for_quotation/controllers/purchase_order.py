@@ -36,17 +36,6 @@ class ProductAPIController(http.Controller):
                 "status":200,
                 "data":result
             } 
-            # return Response(
-            #     json.dumps({'status': 'success', 'data': result}),
-            #     content_type='application/json',
-            #     status=200
-            # )
-        # except Exception as e:
-        #     return Response(
-        #         json.dumps({'status': 'error', 'message': str(e)}),
-        #         content_type='application/json',
-        #         status=500
-        #     )
         except Exception as e:
             return{
                 "status":500,

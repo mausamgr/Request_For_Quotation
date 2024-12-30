@@ -1,5 +1,4 @@
 <odoo>
-    <!-- Template for Portal Menu Integration -->
     <template id="portal_my_home_menu_save_rfq" name="Portal layout : Purchase menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <li t-if="page_name == 'save_rfq'">
@@ -11,7 +10,7 @@
         </xpath>
     </template>
 
-    <!-- Template for displaying RFQs -->
+
     <template id="portal_save_rfq" name="Save RFQ Template">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs">
@@ -24,51 +23,35 @@
                 </ul>
             </t>
             <t t-set="title">Your Saved RFQs</t>
-
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>serial number</th>
+                            <th>Serial Number</th>
                             <th>Quotation Date</th>
                             <th>Order Deadline</th>
-                            <th>Total</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="rfqs" t-as="rfq" t-key="rfq.id">
+                        <t t-log="rfqs"/>
                             <tr>
-                                <td><span t-esc="rfq.id"/></td>
-                                <td><span t-esc="rfq.date_order"/></td>
-                                <td><span t-esc="rfq.order_deadline"/></td>
-                                <td class="text-end"><span t-esc="rfq.amount_total"/></td>
-                                <td><a t-att-href="'/my/rfq/%d' % rfq.id" class="btn btn-primary btn-sm">View</a></td>
+                                <td>1</td>
+                                <td><span t-esc="rfqs['data_order']"/></td>
+                                <td><span t-esc="rfqs['date_planned']"/></td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm">View</a>
+                                    <a  class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this RFQ?');">Delete</a>
+                                </td>
                             </tr>
-                        </t>
-                        <t t-if="not rfqs">
-                            <tr>
-                                <td colspan="5" class="text-center">No RFQs found.</td>
-                            </tr>
-                        </t>
                     </tbody>
                 </table>
+            <div t-if="not rfqs" class="alert alert-info">
+                No saved RFQs available.
+            </div>
             </div>
         </t>
+
     </template>
-
-    <!-- Menu for RFQ -->
-    <record id="custom_portal_parent" model="website.menu">
-        <field name="name">Custom Portal</field>
-        <field name="url">/my</field>
-        <field name="parent_id" ref="website.main_menu"/>
-        <field name="sequence" eval="10"/>
-    </record>
-
-    <record id="portal_menu_save_rfq" model="website.menu">
-        <field name="name">Saved RFQs</field>
-        <field name="url">/my/rfq</field>
-        <field name="parent_id" ref="custom_portal_parent"/>
-        <field name="sequence" eval="30"/>
-    </record>
 </odoo>
