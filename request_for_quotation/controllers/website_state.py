@@ -1,15 +1,7 @@
-
-
-from collections import OrderedDict
-from datetime import datetime
-
 from odoo import http
 from odoo.addons.portal.controllers import portal
-from odoo.addons.portal.controllers.portal import pager as portal_pager
-from odoo.exceptions import AccessError, MissingError
-from odoo.http import Response, request
-from odoo.tools import image_process
 from odoo.tools.translate import _
+
 
 
 class CustomerPortal(portal.CustomerPortal):
@@ -25,6 +17,7 @@ class CustomerPortal(portal.CustomerPortal):
             'my_rfqs_history',
             'rfq',
             'rfqs'
+            
         )
         
 
