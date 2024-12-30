@@ -51,13 +51,11 @@
             </xpath>
                     <xpath expr="//t[@t-call='portal.portal_searchbar']" position="before">
     </xpath>
-             <xpath expr="//t[@t-call='portal.portal_searchbar']" position="before">
-            <div class="o_portal_actions mb-3 d-flex justify-content-end">
+            <xpath expr="//t[@t-call='portal.portal_searchbar']" position="before">
+            <div class="o_portal_actions mb-3 d-flex justify-content-between">
+               <a href="/purchase/save_iteam" class="btn btn-primary" id="save_iteam">Save Iteam</a>
                 <a href="/purchase/new_request" class="btn btn-primary" id="new_purchase_request">New Request</a>
-                
             </div>
         </xpath>
-             
-
     </template>
 </odoo>
