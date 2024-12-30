@@ -6,22 +6,23 @@ import VariantMixin from "@website_sale/js/sale_variant_mixin";
 const addMore = publicWidget.Widget.extend(VariantMixin, {
     selector: "#sm_new_request_form",
 
-    events: {
-        "click #addMore": "_onClickAddMore", // Event binding for Add More button
-        "change #productSelect": "_onProductChange",
-        "input #productSelect": "_onProductSearch",
-        "click #submit": "_onClickSubmit",
-        "click #save": "_onClickSave",
-        "click #retrieve": "_retrieveDataFromSession",
-        "click #addProduct": "_onClickAddProduct"
-    },
-    data: [],
-    init() {
-        this._super(...arguments);
-        this.notification = this.bindService("notification");
-        // this.rpc = this.bindService("rpc");
-        this.data = [];
-    },
+  events: {
+    "click #addMore": "_onClickAddMore", // Event binding for Add More button
+    "change #productSelect": "_onProductChange",
+    "input #productSelect": "_onProductSearch",
+    "click #submit": "_onClickSubmit",
+    "click #save": "_onClickSave",
+    "click #retrieve": "_retrieveDataFromSession",
+    "click #addProduct": "_onClickAddProduct",
+    "click #remove-row": "_onClickRemove",
+  },
+  data: [],
+  init() {
+    this._super(...arguments);
+    this.notification = this.bindService("notification");
+    // this.rpc = this.bindService("rpc");
+    this.data = [];
+  },
 
     async start() {
         await this._super.apply(this, arguments);
@@ -72,34 +73,34 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                     (product) => product.product_id == Number(productID)
                 );
 
-                formData.products.push({
-                    product_name: selectedProduct ? selectedProduct.product_name : "",
-                    product_id: productID,
-                    product_qty: productQty,
-                    product_pkg: productPackage,
-                    product_uom: productUnit,
-                });
+            formData.products.push({
+                product_name: selectedProduct ? selectedProduct.product_name : "",
+                product_id: productID,
+                product_qty: productQty,
+                product_pkg: productPackage,
+                product_uom: productUnit,
             });
-            try {
-                const response = await rpc("/api/save_rfq_data", {
-                    method: "POST",
-                    body: JSON.stringify(formData),
-                    headers: { "Content-Type": "application/json" },
-                });
-                console.log(response)
-                if (response.success) {
-                    this.notification.add("Data saved successfully!", {
-                        type: 'success'
-                    });
-                } else {
-                    this.notification.add("Failed to save data. Please try again.", { type: "danger" });
-                }
-            } catch (error) {
-                console.error("Error submitting RFQ", error);
-                this.notification.add("An error occurred while submitting the request.", { type: "danger" });
-            }
+        });
+    }
+    try {
+        const response = await rpc("/api/save_rfq_data", {
+            method: "POST",
+            body: JSON.stringify(formData),
+            headers: { "Content-Type": "application/json" },
+        });
+        console.log(response)
+        if (response.success) {
+            this.notification.add("Data saved successfully!", {
+                type: 'success'
+            });
+        } else {
+            this.notification.add("Failed to save data. Please try again.", { type: "danger" });
         }
-    },
+    } catch (error) {
+        console.error("Error submitting RFQ", error);
+        this.notification.add("An error occurred while submitting the request.", { type: "danger" });
+    }
+  },
 
     async _retrieveDataFromSession() {
         try {
@@ -131,17 +132,16 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                             <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
                         </td>
                     </tr>`;
-                    return;
-                }
-
-                // Render product rows
-                products.forEach(product => {
-                    const productRowHTML = this._createProductRow(product);
-                    tableBody.insertAdjacentHTML("beforeend", productRowHTML);
-                });
-
-                // Add event listeners for dynamic rows
-                this._addEventListeners();
+                return;
+            }
+  
+            // Render product rows
+            products.forEach((product,index) => {
+                const isFirstRow = index === 0
+                const productRowHTML = this._createProductRow(product,isFirstRow);
+                tableBody.insertAdjacentHTML("beforeend", productRowHTML);
+            });
+  
 
                 this.notification.add("Data retrieved successfully!", { type: 'success' });
             } else {
@@ -152,10 +152,10 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
         }
     },
 
-    _createProductRow(product = {}) {
-        console.log("This data:\t", this.data)
-        const productOptions = this.data.map(p =>
-            `<option value="${p.product_id}" ${p.product_id === Number(product.product_id) ? 'selected' : ''}>
+_createProductRow(product={}, isFirstRow=false) {
+    console.log("This data:\t",this.data)
+    const productOptions = this.data.map(p => 
+        `<option value="${p.product_id}" ${p.product_id === Number(product.product_id) ? 'selected' : ''}>
             ${p.product_name}
         </option>`
         ).join("");
@@ -190,30 +190,64 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                        style="width: 120px; background-color: #f9f9f9; text-align: center;" />
             </td>
             <td>
-                <button type="button" id="addMore" class="btn btn-primary" 
-                                                      style="font-size: 16px; padding: 8px 16px; width: 150px;">
-                                                      Add More
-                                                  </button>
-                <button type="button" class="btn btn-danger remove-row"  
+                ${
+                    isFirstRow
+                        ? `<button type="button" id="addMore" class="btn btn-primary" 
+                            style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                            Add More
+                        </button>`
+                        : ""
+                }
+                <button type="button" id="remove-row" class="btn btn-danger "  
                                                       style="font-size: 16px; padding: 8px 16px; width: 150px;">
                                                       Remove
                                                       </button>
             </td>
         </tr>`;
-    },
-
-    // _addEventListeners handler handles the remove button logic
-    _addEventListeners() {
-        const tableBody = this.el.querySelector("#productTableBody");
-
-        tableBody.querySelectorAll(".remove-row").forEach(button => {
-            button.addEventListener("click", event => {
-                const row = event.target.closest("tr");
-                row.remove();
-            });
+  },
+  
+  // _addEventListeners handler handles the remove button logic
+  _addEventListeners() {
+    const tableBody = this.el.querySelector("#productTableBody");
+  
+    tableBody.querySelectorAll(".remove-row").forEach(button => {
+        button.addEventListener("click", event => {
+            const row = event.target.closest("tr");
+            row.remove();
         });
-    },
+    });
+  },
 
+  async _onClickRemove(ev) {
+    const row = ev.target.closest("tr");
+    row.remove();
+    const tableBody = this.el.querySelector("#productTableBody");
+    const rows = tableBody.querySelectorAll("tr");
+    const remainingRows = tableBody.querySelectorAll("tr").length;
+            if (remainingRows === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            No products found in the RFQ. Please add products to proceed.
+                            <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
+                        </td>
+                    </tr>`;
+            }
+            else{
+                const topRow = rows[0];
+                const topRowActionCell = topRow.querySelector("td:last-child");
+                const hasAddMoreButton = topRowActionCell.querySelector("#addMore");
+
+                if (!hasAddMoreButton) {
+                    const addMoreButtonHTML = `
+                        <button type="button" id="addMore" class="btn btn-primary" 
+                                style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                            Add More
+                        </button>`;
+                    topRowActionCell.insertAdjacentHTML("afterbegin", addMoreButtonHTML);
+                }
+            }
+  },
 
     _onProductChange(ev) {
         const select = ev.currentTarget; // The select element
@@ -256,22 +290,30 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     async _onClickSubmit(ev) {
         ev.preventDefault();
 
-        const formData = {
-            partner_id: this.el.querySelector("#partner_id").value,
-            request_date: this.el.querySelector("#request_date").value,
-            data_order: this.el.querySelector("#data_order").value,
-            date_planned: this.el.querySelector("#date_planned").value,
-            products: [],
-        };
-        let hasError = false; // Flag to track validation errors
-        const tableRows = this.el.querySelectorAll("#productTableBody tr");
-        tableRows.forEach((row) => {
-            console.log("row = \t", row)
-            const productName = row.querySelector(".product").value;
-            console.log("product name:\t", productName)
-            const productQty = row.querySelector(".product-qty").value;
-            const productPackage = row.querySelector(".product-package").value;
-            const productUnit = row.querySelector(".product-unit").value;
+    const formData = {
+      partner_id: this.el.querySelector("#partner_id").value,
+      request_date: this.el.querySelector("#request_date").value,
+      data_order: this.el.querySelector("#data_order").value,
+      date_planned: this.el.querySelector("#date_planned").value,
+      products: [],
+    };
+    if (formData.data_order === ""){
+        this.notification.add("Please select an order date.", { type: 'warning' });
+        return
+    }
+    if (formData.date_planned === ""){
+        this.notification.add("Please select an expected arrival date.", { type: 'warning' });
+        return
+    }
+    let hasError = false; // Flag to track validation errors
+    const tableRows = this.el.querySelectorAll("#productTableBody tr");
+    tableRows.forEach((row) => {
+      console.log("row = \t",row)
+      const productName = row.querySelector(".product").value;
+      console.log("product name:\t",productName)
+      const productQty = row.querySelector(".product-qty").value;
+      const productPackage = row.querySelector(".product-package").value;
+      const productUnit = row.querySelector(".product-unit").value;
 
             if (productName === "") {
                 hasError = true
@@ -280,102 +322,101 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                 hasError = false
             }
 
-            formData.products.push({
-                product_id: productName,
-                product_qty: productQty,
-                product_pkg: productPackage,
-                product_uom: productUnit,
-            });
-        });
-        if (hasError) {
-            this.notification.add("Please select a product", { type: 'warning' });
-            return
-        }
-        console.log(formData)
-        try {
-            const response = await rpc("/api/create_rfq", {
-                method: "POST",
-                body: JSON.stringify(formData), // Make sure to stringify the formData
-                headers: { "Content-Type": "application/json" } // Set the correct content type
-            });
-            console.log(response)
-            if (response.success) {
-                this.notification.add(
-                    "Request for Quotation submitted successfully!", { type: 'success' }
-                );
-            } else {
-                alert("Failed to submit the request. Please try again.");
-                this.notification.add("Failed to submit the request. Please try again!", { type: 'danger' });
-            }
-        } catch (error) {
-            this.notification.add("An error occurred while submitting the request.", error, { type: 'warning' });
-        }
-    },
+      formData.products.push({
+        product_id: productName,
+        product_qty: productQty,
+        product_pkg: productPackage,
+        product_uom: productUnit,
+      });
+    });
+    if (hasError){
+        this.notification.add("Please select a product", { type: 'warning' });
+        return
+    }
+    console.log(formData)
+    try {
+      const response = await rpc("/api/create_rfq", {
+        method: "POST",
+        body: JSON.stringify(formData), // Make sure to stringify the formData
+        headers: { "Content-Type": "application/json" } // Set the correct content type
+      });
+      console.log(response)
+      if (response.success) {
+        this.notification.add(
+            "Request for Quotation submitted successfully!", { type: 'success' }
+        );
+      } else {
+        this.notification.add("Failed to submit the request. Please try again!", { type: 'danger' });
+    }
+    } catch (error) {
+        this.notification.add("An error occurred while submitting the request.", error, { type: 'warning' });
+    }
+  },
 
-    async _onClickAddProduct(ev) {
-        ev.preventDefault();
-        const tableBody = this.el.querySelector("#productTableBody");
-        const productRow = this._createProductRow()
-        tableBody.innerHTML = productRow;
-    },
+  async _onClickAddProduct(ev){
+    ev.preventDefault();
+    const tableBody = this.el.querySelector("#productTableBody");
+    const productRow = this._createProductRow({},true)
+    tableBody.innerHTML = productRow;
+  },
 
     _onClickAddMore(ev) {
         ev.preventDefault();
 
-        const productSelect = this.el.querySelector("#productSelect");
-        const tableBody = this.el.querySelector("#productTableBody");
-        const productQtyInput = this.el.querySelector(".product-qty");
-        const productPackageSelect = this.el.querySelector(".product-package");
-        const productUnitInput = this.el.querySelector(".product-unit");
+    const productSelect = this.el.querySelector(".product");
+    const tableBody = this.el.querySelector("#productTableBody");
+    const productQtyInput = this.el.querySelector(".product-qty");
+    const productPackageSelect = this.el.querySelector(".product-package");
+    const productUnitInput = this.el.querySelector(".product-unit");
 
-        // Retrieve user selections and inputs
-        const selectedProductId = productSelect.value;
-        const selectedProductQty = productQtyInput.value;
-        const selectedProductPackage = productPackageSelect.value;
-        const selectedProductUnit = productUnitInput.value;
+    // Retrieve user selections and inputs
+    const selectedProductId = productSelect.value || "";
+    const selectedProductQty = productQtyInput.value;
+    const selectedProductPackage = productPackageSelect.value;
+    const selectedProductUnit = productUnitInput.value;
 
-        if (selectedProductId === "") {
-            this.notification.add("Please select a product.", error, { type: 'warning' });
-            return
-        }
+    if(selectedProductId === ""){
+        this.notification.add("Please select a product.", error, { type: 'warning' });
+      return
+    }
 
-        // Find the selected product from this.data
-        const selectedProduct = this.data.find(
-            (product) => product.product_id == selectedProductId
-        );
-        console.log(selectedProduct)
-        if (selectedProduct) {
-            const productRowData = {
-                    product_id: selectedProductId,
-                    product_pkg: selectedProductPackage,
-                    product_qty: selectedProductQty,
-                    product_uom: selectedProductUnit,
-                }
-                // Generate the row using `_createProductRow`
-            const newRow = document.createElement("tr");
-            newRow.innerHTML = this._createProductRow(productRowData);
-
-            // Append the new row to the table
-            tableBody.appendChild(newRow);
-
-            // Reset the first row inputs for new product selection
-            productSelect.value = ""; // Reset product dropdown
-            productQtyInput.value = ""; // Clear quantity input
-            productPackageSelect.value = ""; // Reset package dropdown
-            productUnitInput.value = ""; // Clear unit input
-        }
-    },
-    _saveDataToLocalStorage() {
-        // console.log(selectedProduct,'selected product ')
-        console.log("save data to local storage .....")
-        const tableRows = this.el.querySelectorAll('#productTableBody tr')
-        console.log(tableRows, 'table rows...')
-        const rowData = [];
-        tableRows.forEach((row) => {
-            const productName = row.querySelector(".product-name").value;
-            const quantity = row.querySelector(".product-qty").value;
-            const packag = row.querySelector(".product-package").value;
-            const unit = row.querySelector(".product-unit").value;
+    // Find the selected product from this.data
+    const selectedProduct = this.data.find(
+        (product) => product.product_id == selectedProductId
+    );
+    console.log(selectedProduct)
+    if (selectedProduct) {
+        const productRowData = {
+            product_id: selectedProductId,
+            product_pkg: selectedProductPackage,
+            product_qty: selectedProductQty,
+            product_uom: selectedProductUnit,
+          }
+          // Generate the row using `_createProductRow`
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = this._createProductRow(productRowData);
+  
+          // Append the new row to the table
+          tableBody.appendChild(newRow);
+  
+          // Reset the first row inputs for new product selection
+          productSelect.value = ""; // Reset product dropdown
+          productQtyInput.value = ""; // Clear quantity input
+          productPackageSelect.value = ""; // Reset package dropdown
+          productUnitInput.value = ""; // Clear unit input
+    }
+},
+    _saveDataToLocalStorage(){
+      // console.log(selectedProduct,'selected product ')
+      console.log("save data to local storage .....")
+      const tableRows = this.el.querySelectorAll('#productTableBody tr')
+      console.log(tableRows,'table rows...')
+      const rowData = [];
+      tableRows.forEach((row) => {
+          const productName = row.querySelector(".product-name").value;
+          const quantity = row.querySelector(".product-qty").value;
+          const packag = row.querySelector(".product-package").value;
+          const unit = row.querySelector(".product-unit").value;
 
             rowData.push({
                 productName,

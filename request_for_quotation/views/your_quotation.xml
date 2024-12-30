@@ -1,10 +1,10 @@
 <odoo>
     <template id="portal_my_home_menu_save_rfq" name="Portal layout : Purchase menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
-            <li>
-                <a t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'"
-                style="text-decoration: none; color: inherit;">
-                Saved RFQs
+            <li t-if="page_name == 'save_rfq'">
+                <a t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'" 
+                   style="text-decoration: none; color: inherit;">
+                   Saved RFQs
                 </a>
             </li>
         </xpath>
@@ -19,6 +19,7 @@
                         <a href="/my">My Account</a>
                     </li>
                     <li class="breadcrumb-item active">Saved RFQs</li>
+                    
                 </ul>
             </t>
             <t t-set="title">Your Saved RFQs</t>
