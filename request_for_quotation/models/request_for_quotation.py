@@ -1,9 +1,7 @@
 from odoo import fields, models
 
 
-class PurchaseRequest(models.Model):
-    _name = 'purchase.request'
-    _description = 'Purchase Request'
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
 
-    name = fields.Char(string="Request Name", required=True)
-    address = fields.Text(string="Address", required=True)
+    order_deadline = fields.Date(string="Order Deadline")

@@ -3,12 +3,10 @@
 import { rpc } from "@web/core/network/rpc";
 import publicWidget from "@web/legacy/js/public/public_widget";
 import VariantMixin from "@website_sale/js/sale_variant_mixin";
-
 const addMore = publicWidget.Widget.extend(VariantMixin, {
     selector: "#sm_new_request_form",
-
     events: {
-        "click #addMore": "_onClickAddMore", // Event binding for Add More button
+        "click #addMore": "_onClickAddMore",
         "change #productSelect": "_onProductChange",
         "input #productSelect": "_onProductSearch",
         "click #submit": "_onClickSubmit",
@@ -19,23 +17,16 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     init() {
         this._super(...arguments);
         this.notification = this.bindService("notification");
-
-        // this.rpc = this.bindService("rpc");
         this.data = [];
     },
-
     async start() {
         await this._super.apply(this, arguments);
         this._renderContent();
     },
-
     async _renderContent() {
-        // console.log("render content .......")
-        // console.log(await rpc("/api/products"));
         try {
             const res = await rpc("/api/products");
             this.data = res.data;
-            // console.log(data,'data......')
         } catch (error) {
             console.log("Error rendering content", error);
         }
@@ -51,14 +42,13 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             date_planned: this.el.querySelector("#date_planned").value,
             products: [],
         }
-        let hasError = false // flag to track validation errors
+        let hasError = false
         const tableRows = this.el.querySelectorAll("#productTableBody tr");
         tableRows.forEach((row) => {
             const productID = row.querySelector(".product").value;
             const productQty = row.querySelector(".product-qty").value;
             const productPackage = row.querySelector(".product-package").value;
             const productUnit = row.querySelector(".product-unit").value;
-
             if (productID === "") {
                 hasError = true
                 return
@@ -108,18 +98,13 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             if (response.success && response.data) {
                 const data = response.data;
                 console.log("Data retrieved:\t", data);
-
-                // Populate the form fields
                 this.el.querySelector("#partner_id").value = data.partner_id || "";
                 this.el.querySelector("#request_date").value = data.request_date || "";
                 this.el.querySelector("#data_order").value = data.data_order || "";
                 this.el.querySelector("#date_planned").value = data.date_planned || "";
-
                 const tableBody = this.el.querySelector("#productTableBody");
                 tableBody.innerHTML = ""; // Clear existing rows
-
-                const _this = this; // Reference to 'this' for use inside the event listener
-
+                const _this = this;
                 (data.products || []).forEach((product) => {
                     const newRow = document.createElement("tr");
                     newRow.innerHTML = `
@@ -146,26 +131,19 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                     </td>
                 `;
                     tableBody.appendChild(newRow);
-
-                    // Add event listener for the Remove button
                     newRow.querySelector(".btn-remove").addEventListener("click", async function() {
                         try {
-                            // Remove the row from the frontend
                             newRow.remove();
-                            // Make an RPC call to remove the data from the session
                             const removeResponse = await rpc("/api/remove_rfq_data", {
                                 method: "POST",
                                 product_id: product.product_id,
                                 product_qty: product.product_qty,
                             });
-
                             if (removeResponse.success) {
                                 console.log(`Product ID ${product.product_id} removed from session.`);
                                 if (tableBody.children.length === 0) {
                                     _this.el.querySelector("#data_order").value = "";
                                     _this.el.querySelector("#date_planned").value = "";
-
-                                    // Show empty message
                                     const emptyMessage = document.createElement("tr");
                                     emptyMessage.innerHTML = `
                                   <td colspan="5" class="text-center">
@@ -195,49 +173,33 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             alert("An error occurred while retrieving the data.");
         }
     },
-
-
     _onProductChange(ev) {
         const select = ev.currentTarget; // The select element
         // console.log(select,'product selected ....')
         const selectedProductId = select.value;
         // console.log(selectedProductId,'this is selected ')
         console.log(this.data, "this is change data");
-
         const selectedProduct = this.data.find(
             (product) => product.product_id == selectedProductId
         );
-        // console.log(selectedProduct,'whene......')
-
         if (selectedProduct) {
-            // Find the parent row of the select
             const row = select.closest("tr");
-
-            // Update package and unit fields
             const packageInput = row.querySelector(".product-package");
             const unitInput = row.querySelector(".product-unit");
-            // Assuming selectedProduct.package is a list of options
             const packageOptions = selectedProduct.package || [];
-
-            // Clear existing options (if any)
             packageInput.innerHTML = '<option value="" disabled selected>Select a package</option>';
-
-            // Populate dropdown
             packageOptions.forEach(pkg => {
                 const option = document.createElement("option");
-                option.value = pkg; // Set the value
-                option.textContent = pkg; // Set the display text
+                option.value = pkg;
+                option.textContent = pkg;
                 packageInput.appendChild(option);
             });
-            unitInput.value = selectedProduct.unit || ""; // Set unit
+            unitInput.value = selectedProduct.unit || "";
         }
     },
-
     _onProductSearch() {},
-
     async _onClickSubmit(ev) {
         ev.preventDefault();
-
         const formData = {
             partner_id: this.el.querySelector("#partner_id").value,
             request_date: this.el.querySelector("#request_date").value,
@@ -245,7 +207,7 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             date_planned: this.el.querySelector("#date_planned").value,
             products: [],
         };
-        let hasError = false; // Flag to track validation errors
+        let hasError = false;
         const tableRows = this.el.querySelectorAll("#productTableBody tr");
         tableRows.forEach((row) => {
             console.log("row = \t", row)
@@ -254,14 +216,12 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             const productQty = row.querySelector(".product-qty").value;
             const productPackage = row.querySelector(".product-package").value;
             const productUnit = row.querySelector(".product-unit").value;
-
             if (productName === "") {
                 hasError = true
                 return
             } else {
                 hasError = false
             }
-
             formData.products.push({
                 product_id: productName,
                 product_qty: productQty,
@@ -295,25 +255,19 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     },
     _onClickAddMore(ev) {
         ev.preventDefault();
-
         const productSelect = this.el.querySelector("#productSelect");
         const tableBody = this.el.querySelector("#productTableBody");
         const productQtyInput = this.el.querySelector(".product-qty");
         const productPackageSelect = this.el.querySelector(".product-package");
         const productUnitInput = this.el.querySelector(".product-unit");
-
-        // Retrieve user selections and inputs
         const selectedProductId = productSelect.value;
         const selectedProductQty = productQtyInput.value;
         const selectedProductPackage = productPackageSelect.value;
         const selectedProductUnit = productUnitInput.value;
-
         if (selectedProductId === "") {
             alert("Please select a product")
             return
         }
-
-        // Find the selected product from this.data
         const selectedProduct = this.data.find(
             (product) => product.product_id == selectedProductId
         );
