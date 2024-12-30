@@ -12,7 +12,7 @@ class RFQSessionController(http.Controller):
         parsed_kwargs = json.loads(kwargs.get('body'))
         print("Parsed Kwargs:\t",parsed_kwargs)
         request.session['rfq_data'] = parsed_kwargs
-        # return {"success": True, "message": "RFQ data saved successfully."}
+        return {"success": True, "message": "RFQ data saved successfully."}
         
         # return {
         #     "type": "ir.actions.client",
