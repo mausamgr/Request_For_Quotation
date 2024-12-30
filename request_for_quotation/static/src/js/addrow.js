@@ -299,13 +299,9 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
             </td>
         `;
             tableBody.appendChild(newRow);
-
-            // Add event listener for the Remove button
             newRow.querySelector(".btn-remove").addEventListener("click", function() {
                 newRow.remove();
             });
-
-            // Reset the first row inputs for new product selection
             productSelect.value = ""; // Reset product dropdown
             productQtyInput.value = ""; // Clear quantity input
             productPackageSelect.value = ""; // Reset package dropdown
