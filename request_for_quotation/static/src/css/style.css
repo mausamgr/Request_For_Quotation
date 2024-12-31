@@ -12,37 +12,33 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Specific table styling for #sm_new_request_form */
 #sm_new_request_form .table {
-    width: 100%; /* Ensure the table spans the container */
-    table-layout: fixed; /* Fix column widths */
-    border-collapse: collapse; /* Remove gaps between table cells */
-    margin: 20px 0; /* Add some space around the table */
-    font-size: 16px; /* Font size for the table text */
-    text-align: center; /* Center align text */
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin: 20px 0; 
+    font-size: 16px;
+    text-align: center;
 }
 
-/* Fix column widths */
 #sm_new_request_form .table th,
 #sm_new_request_form .table td {
-    width: 150px; /* Set a fixed width for each cell */
-    word-wrap: break-word; /* Break text to fit in cells */
-    padding: 8px; /* Add padding inside the cells */
+    width: 150px;
+    word-wrap: break-word;
+    padding: 8px;
 }
 
-/* Header row styling */
 #sm_new_request_form .table th {
-    font-weight: bold; /* Bold text for headers */
-    text-align: center; /* Center align header text */
+    font-weight: bold;
+    text-align: center;
 }
 
-/* Alternating row background colors */
 #sm_new_request_form .table tbody tr:nth-child(odd) {
-    background-color: #fcfafa; /* Light gray */
+    background-color: #fcfafa;
 }
 
 #sm_new_request_form .table tbody tr:nth-child(even) {
-    background-color: #ffffff; /* White */
+    background-color: #ffffff;
 }
 
 #sm_new_request_form .table th,
@@ -52,49 +48,44 @@
     border-style: none;
 }
 
-/* Styling for inputs and select elements inside table cells */
 #sm_new_request_form .table input,
 #sm_new_request_form .table select {
-    width: 90%; /* Ensure inputs fit within cells */
-    margin: 0 auto; /* Center inputs */
-    padding: 5px; /* Add padding inside inputs */
+    width: 90%;
+    margin: 0 auto;
+    padding: 5px;
 }
 
-/* Remove table borders and box styling for transparent design */
 #sm_new_request_form .table {
     border: none;
 }
 
 #sm_new_request_form .table td .product {
-    width: 180px; /* Adjust width as per requirement */
+    width: 180px;
 }
 
 #sm_new_request_form .table td .product-qty {
-    width: 195px; /* Adjust width as per requirement */
+    width: 195px;
 }
 
 #sm_new_request_form .table td .product-package {
-    width: 160px; /* Adjust width as per requirement */
+    width: 160px;
 }
 
 #sm_new_request_form .table td .product-unit {
-    width: 180px; /* Adjust width as per requirement */
+    width: 180px;
 }
 
-/* Decrease the width of the Add More button cell */
 #sm_new_request_form .table td:last-child {
-    width: 70px; /* Adjust width as per requirement */
+    width: 70px;
     align-items: flex-end;
 }
 
-/* Styling for the product select dropdown */
 #sm_new_request_form .product {
     border: none;
     background-color: transparent;
     cursor: pointer;
 }
 
-/* Styling for the product quantity input field */
 #sm_new_request_form .product-qty {
     border: none;
     text-align: center;
@@ -102,7 +93,6 @@
     cursor: pointer;
 }
 
-/* Styling for the product package select dropdown */
 #sm_new_request_form .product-package {
     padding: 5px;
     border: none;
@@ -110,7 +100,6 @@
     cursor: pointer;
 }
 
-/* Styling for the product unit input field */
 #sm_new_request_form .product-unit {
     padding: 5px;
     text-align: center;
@@ -121,14 +110,14 @@
 
 #sm_new_request_form .flex-container {
     display: flex;
-    justify-content: space-between;  /* Distributes space evenly between items */
-    gap: 20px;                      /* Adds space between flex items */
+    justify-content: space-between;
+    gap: 20px;
   }
   
 #sm_new_request_form .flex_items {
     display: flex;
     flex-direction: column;
-    gap: 10px;                      /* Adds space between rows of form items */
+    gap: 10px;
   }
 
 #sm_new_request_form  .col-3 {
