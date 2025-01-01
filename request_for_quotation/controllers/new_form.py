@@ -15,8 +15,7 @@ class RFQController(http.Controller):
 
     @http.route('/purchase/save_iteam', type='http', auth="public", website=True)
     def save_iteam(self, **kwargs):
-        rfqs = request.session.get('rfq_data', [])
-        print(rfqs)
+        rfqs = request.session.get('rfq_data', {})
         return request.render('request_for_quotation.portal_save_rfq', {
             'title': 'No RFQs Found',
             'website_id': 1,

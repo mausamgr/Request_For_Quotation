@@ -10,7 +10,6 @@ class RFQSessionController(http.Controller):
     @http.route('/api/save_rfq_data', type='json', auth='public', methods=['POST'], csrf=False)
     def save_rfq_data(self, **kwargs):
         parsed_kwargs = json.loads(kwargs.get('body'))
-        print("Parsed Kwargs:\t",parsed_kwargs)
         request.session['rfq_data'] = parsed_kwargs
         return {"success": True, "message": "RFQ data saved successfully."}
         

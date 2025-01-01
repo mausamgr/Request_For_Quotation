@@ -169,17 +169,17 @@ _createProductRow(product={}, isFirstRow=false) {
         return `
         <tr>
             <td>
-                <select id="productSelect" name="product" class="product" style="width: 120px;">
+                <select id="productSelect" name="product" class="product">
                     <option value="">Select a product</option>
                     ${productOptions}
                 </select>
             </td>
             <td>
-                <input ttype="number" name="product-qty[]" class="product-qty" value="${product.product_qty || ''}" 
-                       placeholder="Enter quantity" style="width: 80px; text-align: center;" />
+                <input type="number" name="product-qty[]" class="product-qty" value="${product.product_qty || ''}" 
+                       placeholder="Enter a product quantity"/>
             </td>
             <td>
-                <select name="product-package" class="product-package" style="width: 120px;">
+                <select name="product-package" class="product-package"">
                     <option value="">Select a package</option>
                     ${packageOptions}
                 </select>
@@ -187,19 +187,19 @@ _createProductRow(product={}, isFirstRow=false) {
             <td>
                 <input type="text" name="product-unit" class="product-unit" readonly 
                        value="${product.product_uom || 'Select a product first'}" 
-                       style="width: 120px; background-color: #f9f9f9; text-align: center;" />
+                       />
             </td>
             <td>
                 ${
                     isFirstRow
                         ? `<button type="button" id="addMore" class="btn btn-primary" 
-                            style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                            style="font-size: 16px; padding: 7px 3px; width: 90px;">
                             Add More
                         </button>`
                         : ""
                 }
                 <button type="button" id="remove-row" class="btn btn-danger "  
-                                                      style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                                      style="font-size: 16px; padding: 7px 3px; width: 90px;">
                                                       Remove
                                                       </button>
             </td>
@@ -376,8 +376,8 @@ _createProductRow(product={}, isFirstRow=false) {
     const selectedProductUnit = productUnitInput.value;
 
     if(selectedProductId === ""){
-        this.notification.add("Please select a product.", error, { type: 'warning' });
-      return
+        this.notification.add("Please select a product.", { type: 'warning' });
+        return;
     }
 
     // Find the selected product from this.data
