@@ -10,6 +10,7 @@
     'license': 'LGPL-3',
     'depends': ['base','account','product', 'website_sale','web'],
     'data': [
+        # 'wizard/confirm_wizard.xml',
         'views/order.xml',
         'views/rfq_form.xml',
         'views/your_quotation.xml',
@@ -20,7 +21,6 @@
                 'request_for_quotation/static/src/js/addrow.js',
                 ],
         },
-
     'demo': [],
     'installable': True,
     'application': False,

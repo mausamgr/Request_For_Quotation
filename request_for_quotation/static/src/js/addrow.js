@@ -41,20 +41,21 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     async _onClickSave(ev) {
         ev.preventDefault()
         console.log("Save button clicked")
+        const rfqID = this.el.querySelector(".rfq_data_sv") ? this.el.querySelector(".rfq_data_sv").value : null;
         const formData = {
             partner_id: this.el.querySelector("#partner_id").value,
             request_date: this.el.querySelector("#request_date").value,
             data_order: this.el.querySelector("#data_order").value,
             date_planned: this.el.querySelector("#date_planned").value,
             products: [],
+            ...(rfqID && { request_id: rfqID }),
         }
+        console.log("Form data:\t",formData, "\t and id:\t", rfqID)
         const tableRows = Array.from(this.el.querySelectorAll("#productTableBody tr"))
             .filter((row) => row.querySelector(".product"));
         console.log(tableRows)
-            // If there are no rows, save empty products array
+        let qty_error=false;
         if (tableRows.length === 0) {
-            console.log("No products in table. Saving empty data.");
-            // You can also push an empty object if needed
             formData.products = [];
         } else {
             // Iterate over the rows if there are any
@@ -68,7 +69,10 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                 if (productID === "") {
                     return;
                 }
-
+                if (productQty <= 0){
+                    qty_error = true
+                    return;
+                }
                 const selectedProduct = this.data.find(
                     (product) => product.product_id == Number(productID)
                 );
@@ -81,6 +85,10 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                 product_uom: productUnit,
             });
         });
+        if (qty_error){
+            this.notification.add("Quantity should be greater than 0.", { type: 'warning' });
+            return;
+        }
     }
     try {
         const response = await rpc("/api/save_rfq_data", {
@@ -169,17 +177,17 @@ _createProductRow(product={}, isFirstRow=false) {
         return `
         <tr>
             <td>
-                <select id="productSelect" name="product" class="product" style="width: 120px;">
+                <select id="productSelect" name="product" class="product">
                     <option value="">Select a product</option>
                     ${productOptions}
                 </select>
             </td>
             <td>
-                <input ttype="number" name="product-qty[]" class="product-qty" value="${product.product_qty || ''}" 
-                       placeholder="Enter quantity" style="width: 80px; text-align: center;" />
+                <input type="number" name="product-qty[]" class="product-qty" value="${product.product_qty || ''}" 
+                       placeholder="Enter a product quantity"/>
             </td>
             <td>
-                <select name="product-package" class="product-package" style="width: 120px;">
+                <select name="product-package" class="product-package"">
                     <option value="">Select a package</option>
                     ${packageOptions}
                 </select>
@@ -187,19 +195,19 @@ _createProductRow(product={}, isFirstRow=false) {
             <td>
                 <input type="text" name="product-unit" class="product-unit" readonly 
                        value="${product.product_uom || 'Select a product first'}" 
-                       style="width: 120px; background-color: #f9f9f9; text-align: center;" />
+                       />
             </td>
             <td>
                 ${
                     isFirstRow
                         ? `<button type="button" id="addMore" class="btn btn-primary" 
-                            style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                            style="font-size: 16px; padding: 7px 3px; width: 90px;">
                             Add More
                         </button>`
                         : ""
                 }
                 <button type="button" id="remove-row" class="btn btn-danger "  
-                                                      style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                                      style="font-size: 16px; padding: 7px 3px; width: 90px;">
                                                       Remove
                                                       </button>
             </td>
@@ -226,12 +234,13 @@ _createProductRow(product={}, isFirstRow=false) {
     const remainingRows = tableBody.querySelectorAll("tr").length;
             if (remainingRows === 0) {
                 tableBody.innerHTML = `
-                    <tr>
+                    <tr class="no-products-row">
                         <td colspan="5" class="text-center">
                             No products found in the RFQ. Please add products to proceed.
                             <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
                         </td>
-                    </tr>`;
+                    </tr>
+                `
             }
             else{
                 const topRow = rows[0];
@@ -241,7 +250,7 @@ _createProductRow(product={}, isFirstRow=false) {
                 if (!hasAddMoreButton) {
                     const addMoreButtonHTML = `
                         <button type="button" id="addMore" class="btn btn-primary" 
-                                style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                style="font-size: 16px; padding: 7px 3px; width: 90px;">
                             Add More
                         </button>`;
                     topRowActionCell.insertAdjacentHTML("afterbegin", addMoreButtonHTML);
@@ -262,19 +271,11 @@ _createProductRow(product={}, isFirstRow=false) {
         // console.log(selectedProduct,'whene......')
 
         if (selectedProduct) {
-            // Find the parent row of the select
             const row = select.closest("tr");
-
-            // Update package and unit fields
             const packageInput = row.querySelector(".product-package");
             const unitInput = row.querySelector(".product-unit");
-            // Assuming selectedProduct.package is a list of options
             const packageOptions = selectedProduct.package || [];
-
-            // Clear existing options (if any)
             packageInput.innerHTML = '<option value="" disabled selected>Select a package</option>';
-
-            // Populate dropdown
             packageOptions.forEach(pkg => {
                 const option = document.createElement("option");
                 option.value = pkg; // Set the value
@@ -306,6 +307,7 @@ _createProductRow(product={}, isFirstRow=false) {
         return
     }
     let hasError = false; // Flag to track validation errors
+    let qtyError = false;
     const tableRows = this.el.querySelectorAll("#productTableBody tr");
     tableRows.forEach((row) => {
       console.log("row = \t",row)
@@ -321,6 +323,10 @@ _createProductRow(product={}, isFirstRow=false) {
             } else {
                 hasError = false
             }
+            if (productQty <= 0){
+                qtyError = true
+                return;
+            }
 
       formData.products.push({
         product_id: productName,
@@ -332,6 +338,10 @@ _createProductRow(product={}, isFirstRow=false) {
     if (hasError){
         this.notification.add("Please select a product", { type: 'warning' });
         return
+    }
+    if (qtyError){
+        this.notification.add("Quantity should be greater than 0", { type: 'warning' });
+        return;
     }
     console.log(formData)
     try {
@@ -376,8 +386,8 @@ _createProductRow(product={}, isFirstRow=false) {
     const selectedProductUnit = productUnitInput.value;
 
     if(selectedProductId === ""){
-        this.notification.add("Please select a product.", error, { type: 'warning' });
-      return
+        this.notification.add("Please select a product.", { type: 'warning' });
+        return;
     }
 
     // Find the selected product from this.data

@@ -11,3 +11,126 @@
     z-index: 9999;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+#sm_new_request_form .table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin: 20px 0; 
+    font-size: 16px;
+    text-align: center;
+}
+
+#sm_new_request_form .table th,
+#sm_new_request_form .table td {
+    width: 150px;
+    word-wrap: break-word;
+    padding: 8px;
+}
+
+#sm_new_request_form .table th {
+    font-weight: bold;
+    text-align: center;
+}
+
+#sm_new_request_form .table tbody tr:nth-child(odd) {
+    background-color: #fcfafa;
+}
+
+#sm_new_request_form .table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+#sm_new_request_form .table th,
+#sm_new_request_form .table td,
+#sm_new_request_form .table tbody
+#sm_new_request_form .table tr{
+    border-style: none;
+}
+
+#sm_new_request_form .table input,
+#sm_new_request_form .table select {
+    width: 90%;
+    margin: 0 auto;
+    padding: 5px;
+}
+
+#sm_new_request_form .table {
+    border: none;
+}
+
+#sm_new_request_form .table td .product {
+    width: 180px;
+}
+
+#sm_new_request_form .table td .product-qty {
+    width: 195px;
+}
+
+#sm_new_request_form .table td .product-package {
+    width: 160px;
+}
+
+#sm_new_request_form .table td .product-unit {
+    width: 180px;
+}
+
+#sm_new_request_form .table td:last-child {
+    width: 205px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#sm_new_request_form .product {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#sm_new_request_form .product-qty {
+    border: none;
+    text-align: center;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#sm_new_request_form .product-package {
+    padding: 5px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#sm_new_request_form .product-unit {
+    padding: 5px;
+    text-align: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#sm_new_request_form .flex-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+#sm_new_request_form .flex_items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+#sm_new_request_form  .col-3 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 auto;
+    flex: 0 0 auto;
+    width: 50%;
+    align-items: center;
+}
+
+#sm_new_request_form .no-products-row td {
+    width: auto !important; /* Remove any inherited width */
+    display: block !important; /* Override the default flex display */
+    text-align: center !important; /* Align text to the center */
+}
