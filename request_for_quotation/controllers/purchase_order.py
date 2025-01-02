@@ -18,7 +18,6 @@ class ProductAPIController(http.Controller):
                         'variant_id': variant.id,
                         'variant_name': variant.display_name,
                         'price': variant.list_price,
-                        # 'unit': product.uom_id.name,
                     } for variant in product.product_variant_ids
                 ]
                 packages = [package.name for package in product.packaging_ids]
