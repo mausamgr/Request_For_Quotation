@@ -25,7 +25,7 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Serial Number</th>
+                            <th>Request Number</th>
                             <th>Quotation Date</th>
                             <th>Order Deadline</th>
                             <th>Actions</th>
@@ -35,15 +35,15 @@
                         <t t-if="rfqs">
                             <t t-set="serial_number" t-value="1"/>
                             <t t-log="rfqs"/>
-                            <!-- <t t-foreach="rfqs" t-as="rfq"> -->
+                            <t t-foreach="rfqs.items()" t-as="rfq">
                                 <tr>
-                                    <td><span t-esc="serial_number"/></td>
-                                    <td><span t-esc="rfqs['data_order']"/></td>
-                                    <td><span t-esc="rfqs['date_planned']"/></td>
+                                    <td><span t-esc="rfq[0]"/></td>
+                                    <td><span t-esc="rfq[1]['data_order']"/></td>
+                                    <td><span t-esc="rfq[1]['date_planned']"/></td>
                                     <td>
-                                        <a class="btn btn-primary btn-sm">View</a>
+                                        <a t-att-href="'/purchase/request/' + str(rfq[0])" class="btn btn-primary btn-sm">View</a>
                                         <!-- <form t-attf-action="'/my/rfqs/delete/' + str(rfq['id'])" method="post" style="display:inline;"> -->
-                                        <form t-attf-action="'/my/rfqs/delete/' + str(rfq['id'])" method="post" style="display:inline;">
+                                        <form t-att-action="'/my/rfqs/delete/' + str(rfq[0])" method="post" style="display:inline;">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                             <button type="submit" class="btn btn-danger btn-sm" 
                                                     onclick="return confirm('Are you sure you want to delete this RFQ?');">
@@ -53,7 +53,7 @@
                                     </td>
                                 </tr>
                                 <t t-set="serial_number" t-value="serial_number + 1"/>
-                            <!-- </t> -->
+                            </t>
                         </t>
                         <t t-else="">
                             <tr>

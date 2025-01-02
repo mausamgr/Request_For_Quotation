@@ -76,8 +76,9 @@
 }
 
 #sm_new_request_form .table td:last-child {
-    width: 70px;
-    align-items: flex-end;
+    width: 205px;
+    display: flex;
+    justify-content: space-between;
 }
 
 #sm_new_request_form .product {
@@ -126,4 +127,10 @@
     flex: 0 0 auto;
     width: 50%;
     align-items: center;
+}
+
+#sm_new_request_form .no-products-row td {
+    width: auto !important; /* Remove any inherited width */
+    display: block !important; /* Override the default flex display */
+    text-align: center !important; /* Align text to the center */
 }
