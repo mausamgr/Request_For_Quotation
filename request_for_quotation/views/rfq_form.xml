@@ -175,6 +175,7 @@
                                                 </td>
                                                 <td style="vertical-align: middle;">
                                                     <select name="product-package" class="product-package">
+                                                    <option value="" selected="">Select a package</option>
                                                     </select>
                                                 </td>
                                                 <td style="vertical-align: middle;">

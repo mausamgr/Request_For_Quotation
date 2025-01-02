@@ -54,10 +54,8 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
         const tableRows = Array.from(this.el.querySelectorAll("#productTableBody tr"))
             .filter((row) => row.querySelector(".product"));
         console.log(tableRows)
-            // If there are no rows, save empty products array
+        let qty_error=false;
         if (tableRows.length === 0) {
-            console.log("No products in table. Saving empty data.");
-            // You can also push an empty object if needed
             formData.products = [];
         } else {
             // Iterate over the rows if there are any
@@ -71,7 +69,10 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                 if (productID === "") {
                     return;
                 }
-
+                if (productQty <= 0){
+                    qty_error = true
+                    return;
+                }
                 const selectedProduct = this.data.find(
                     (product) => product.product_id == Number(productID)
                 );
@@ -84,6 +85,10 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
                 product_uom: productUnit,
             });
         });
+        if (qty_error){
+            this.notification.add("Quantity should be greater than 0.", { type: 'warning' });
+            return;
+        }
     }
     try {
         const response = await rpc("/api/save_rfq_data", {
@@ -302,6 +307,7 @@ _createProductRow(product={}, isFirstRow=false) {
         return
     }
     let hasError = false; // Flag to track validation errors
+    let qtyError = false;
     const tableRows = this.el.querySelectorAll("#productTableBody tr");
     tableRows.forEach((row) => {
       console.log("row = \t",row)
@@ -317,6 +323,10 @@ _createProductRow(product={}, isFirstRow=false) {
             } else {
                 hasError = false
             }
+            if (productQty <= 0){
+                qtyError = true
+                return;
+            }
 
       formData.products.push({
         product_id: productName,
@@ -328,6 +338,10 @@ _createProductRow(product={}, isFirstRow=false) {
     if (hasError){
         this.notification.add("Please select a product", { type: 'warning' });
         return
+    }
+    if (qtyError){
+        this.notification.add("Quantity should be greater than 0", { type: 'warning' });
+        return;
     }
     console.log(formData)
     try {
