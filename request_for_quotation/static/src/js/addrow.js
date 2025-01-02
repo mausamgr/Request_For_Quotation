@@ -41,13 +41,16 @@ const addMore = publicWidget.Widget.extend(VariantMixin, {
     async _onClickSave(ev) {
         ev.preventDefault()
         console.log("Save button clicked")
+        const rfqID = this.el.querySelector(".rfq_data_sv") ? this.el.querySelector(".rfq_data_sv").value : null;
         const formData = {
             partner_id: this.el.querySelector("#partner_id").value,
             request_date: this.el.querySelector("#request_date").value,
             data_order: this.el.querySelector("#data_order").value,
             date_planned: this.el.querySelector("#date_planned").value,
             products: [],
+            ...(rfqID && { request_id: rfqID }),
         }
+        console.log("Form data:\t",formData, "\t and id:\t", rfqID)
         const tableRows = Array.from(this.el.querySelectorAll("#productTableBody tr"))
             .filter((row) => row.querySelector(".product"));
         console.log(tableRows)
@@ -226,12 +229,13 @@ _createProductRow(product={}, isFirstRow=false) {
     const remainingRows = tableBody.querySelectorAll("tr").length;
             if (remainingRows === 0) {
                 tableBody.innerHTML = `
-                    <tr>
+                    <tr class="no-products-row">
                         <td colspan="5" class="text-center">
                             No products found in the RFQ. Please add products to proceed.
                             <button type="button" id="addProduct" class="btn btn-primary mt-2">Add Product</button>
                         </td>
-                    </tr>`;
+                    </tr>
+                `
             }
             else{
                 const topRow = rows[0];
@@ -241,7 +245,7 @@ _createProductRow(product={}, isFirstRow=false) {
                 if (!hasAddMoreButton) {
                     const addMoreButtonHTML = `
                         <button type="button" id="addMore" class="btn btn-primary" 
-                                style="font-size: 16px; padding: 8px 16px; width: 150px;">
+                                style="font-size: 16px; padding: 7px 3px; width: 90px;">
                             Add More
                         </button>`;
                     topRowActionCell.insertAdjacentHTML("afterbegin", addMoreButtonHTML);

@@ -5,9 +5,13 @@
             <li t-if="page_name == 'new_rfq'">
                 <a t-if="order" t-attf-href="/my/purchase?{{ keep_query() }}">Purchase Orders</a>
                 <t t-else="">
-                    <a t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'" 
+                    <a t-if="not rfq_data" t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/my/rfq'" 
                     style="text-decoration: none; color: inherit;">
                         Request For Quotation/New Request
+                    </a>
+                    <a t-if="rfq_data" t-att-href="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/purchase/save_iteam'" 
+                    style="text-decoration: none; color: inherit;">
+                        Saved RFQs/<t t-esc="rfq_data['rfq_id']"/>
                     </a>
                 </t>
             </li>
@@ -20,6 +24,9 @@
                 <div class="container row">
                     <div class="d-flex col-lg-4 col-xxl-3 border-end my-1 flex-column" style="text-align: left;">
                         <div class="mt-5">
+                            <t t-if="rfq_data">
+                                <input type="hidden" class="rfq_data_sv" t-att-value="rfq_data['rfq_id']"/>
+                            </t>
                             <label class="form-label"><strong>From:</strong></label><br/>
                             <label class="form-label"><t t-esc="request.env.company.name"/></label><br/>
                             <label class="form-label"><t t-esc="request.env.company.street"/></label><br/>
@@ -33,7 +40,8 @@
                         </div>
                     </div>
                     <div class="col-lg-8 col-xxl-9" style="text-align: center;">
-                        <h1 class="pb-5">New Order Request</h1>
+                        <h1 class="pb-5" t-if="not rfq_data">New Order Request</h1>
+                        <h1 class="pb-5" t-if="rfq_data">Your Order Request</h1>
                         <form method="post" action="/api/create_rfq">
                             <div class="flex-container">
                                 <div class="flex_items">
@@ -54,7 +62,7 @@
                                             </label>
                                         </div>
                                         <div class="col-3">
-                                            <input type="datetime-local" id="request_date" name="request_date" class="form-control w-100" readonly="readonly"/>
+                                            <input type="datetime-local" id="request_date" name="request_date" class="form-control w-100" readonly="readonly" t-att-value="rfq_data['request_date'] if rfq_data else ''"/>
                                         </div>
                                     </div>
                                 </div>
@@ -66,7 +74,7 @@
                                             </label>
                                         </div>
                                         <div class="col-3">
-                                            <input type="datetime-local" id="data_order" name="data_order" class="form-control w-100"/>
+                                            <input type="datetime-local" id="data_order" name="data_order" class="form-control w-100" t-att-value="rfq_data['data_order'] if rfq_data else ''"/>
                                         </div>
                                     </div>
                                     <div class="row mt-2 mb-3">
@@ -76,7 +84,7 @@
                                             </label>
                                         </div>
                                         <div class="col-3">
-                                            <input type="datetime-local" id="date_planned" name="date_planned" class="form-control w-100"/>
+                                            <input type="datetime-local" id="date_planned" name="date_planned" class="form-control w-100" t-att-value="rfq_data['date_planned'] if rfq_data else ''"/>
                                         </div>
                                     </div>
                                 </div>
@@ -96,38 +104,93 @@
                                     </tr>
                                 </thead>
                                 <tbody id="productTableBody" name="productTableBody">
-                                    <tr>
-                                        <td style="vertical-align: middle;">
-                                            <select id="productSelect" name="product" class="product">
-                                                <option value="" selected="selected">Select a product</option>
-                                                <t t-foreach="products" t-as="product">
-                                                    <option t-att-value="product.id">
-                                                        <t t-out="product.name"/>
-                                                    </option>
-                                                </t>
-                                            </select>
-                                        </td>
-                                        <td style="vertical-align: middle;">
-                                            <input type="number" name="product-qty[]" class="product-qty" 
-                                                placeholder="Enter a product quantity"/>
-                                        </td>
-                                        <td style="vertical-align: middle;">
-                                            <select name="product-package" class="product-package">
-                                                <option value="" selected="selected">Select a package</option>
-                                            </select>
-                                        </td>
-                                        <td style="vertical-align: middle;">
-                                            <input type="text" name="product-unit" class="product-unit" readonly="readonly" 
-                                                placeholder="Select a product first"/>
-                                        </td>
-                                        <td style="vertical-align: middle;">
-                                            <div class="btn-addmore" style="text-align: center;">
-                                                <button type="button" id="addMore" class="btn btn-primary" style="font-size: 16px; padding: 7px 3px; width: 90px;">
-                                                    Add More
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <t t-if="rfq_data">
+                                        <t t-foreach="rfq_data['products']" t-as="rq_product">
+                                            <tr>
+                                                <td style="vertical-align: middle;">
+                                                    <select id="productSelect" name="product" class="product">
+                                                        <option value="" selected="selected">Select a product</option>
+                                                        <t t-foreach="products" t-as="product">
+                                                            <option t-att-value="product.id"  t-att-selected="int(rq_product['product_id']) == product.id">
+                                                                <t t-out="product.name"/>
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <input type="number" name="product-qty[]" class="product-qty" t-att-value="rq_product['product_qty']"
+                                                        placeholder="Enter a product quantity"/>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <select name="product-package" class="product-package">
+                                                        <option value="" t-if="not rq_product['product_pkg']">Select a package</option>
+                                                        <t t-foreach="products" t-as="db_product">
+                                                            <t t-if="db_product.id == int(rq_product['product_id'])">
+                                                                <t t-foreach="db_product.packaging_ids" t-as="pkg">
+                                                                    <option 
+                                                                        t-att-value="pkg.name"
+                                                                        t-att-selected="pkg.name == rq_product['product_pkg']">
+                                                                        <t t-esc="pkg.name"/>
+                                                                    </option>
+                                                                </t>
+                                                            </t>
+                                                        </t>
+                                                    </select>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <input type="text" name="product-unit" class="product-unit" readonly="readonly" t-att-value="rq_product['product_uom']"
+                                                        placeholder="Select a product first"/>
+                                                </td>
+                                                <td>
+                                                        <t t-if="rq_product_index == 0">
+                                                            <button type="button" id="addMore" class="btn btn-primary" 
+                                                            style="font-size: 16px; padding: 7px 3px; width: 90px;">
+                                                                Add More
+                                                            </button>
+                                                        </t>
+                                                        <button type="button" id="remove-row" class="btn btn-danger "  
+                                                        style="font-size: 16px; padding: 7px 3px; width: 90px;">
+                                                                Remove
+                                                        </button>
+                                                        
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <tr>
+                                                <td style="vertical-align: middle;">
+                                                    <select id="productSelect" name="product" class="product">
+                                                        <option value="" selected="selected">Select a product</option>
+                                                        <t t-foreach="products" t-as="product">
+                                                            <option t-att-value="product.id">
+                                                                <t t-out="product.name"/>
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <input type="number" name="product-qty[]" class="product-qty"
+                                                        placeholder="Enter a product quantity"/>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <select name="product-package" class="product-package">
+                                                    </select>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <input type="text" name="product-unit" class="product-unit" readonly="readonly"
+                                                        placeholder="Select a product first"/>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <div class="btn-addmore" style="text-align: center;">
+                                                        <button type="button" id="addMore" class="btn btn-primary" style="font-size: 16px; padding: 7px 3px; width: 90px;">
+                                                            Add More
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                    </t>
+                                    
                                 </tbody>
                             </table>
                             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px;">
