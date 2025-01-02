@@ -266,19 +266,11 @@ _createProductRow(product={}, isFirstRow=false) {
         // console.log(selectedProduct,'whene......')
 
         if (selectedProduct) {
-            // Find the parent row of the select
             const row = select.closest("tr");
-
-            // Update package and unit fields
             const packageInput = row.querySelector(".product-package");
             const unitInput = row.querySelector(".product-unit");
-            // Assuming selectedProduct.package is a list of options
             const packageOptions = selectedProduct.package || [];
-
-            // Clear existing options (if any)
             packageInput.innerHTML = '<option value="" disabled selected>Select a package</option>';
-
-            // Populate dropdown
             packageOptions.forEach(pkg => {
                 const option = document.createElement("option");
                 option.value = pkg; // Set the value
